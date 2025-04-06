@@ -1,92 +1,218 @@
-<!-- templates/base.html -->
+{% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Sistema Financeiro{% endblock %}</title>
+    <title>{% block title %}Sistema Financeiro GVD{% endblock %}</title>
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Fontes personalizadas GVD -->
+    <link href="{% static 'css/gvd-fonts.css' %}" rel="stylesheet">
     <!-- HTMX -->
     <script src="https://unpkg.com/htmx.org@1.9.2"></script>
     <!-- Alpine.js -->
     <script defer src="https://unpkg.com/alpinejs@3.12.3/dist/cdn.min.js"></script>
+    
+    <!-- Estilos personalizados GVD -->
+    <style>
+        :root {
+            --gvd-dark: #010911;
+            --gvd-red: #F53101;
+            --gvd-light: #F2F3F4;
+            --gvd-orange: #FA820D;
+            
+            --bs-primary: var(--gvd-orange);
+            --bs-primary-rgb: 250, 130, 13;
+            --bs-secondary: var(--gvd-dark);
+            --bs-secondary-rgb: 1, 9, 17;
+            --bs-danger: var(--gvd-red);
+            --bs-danger-rgb: 245, 49, 1;
+            --bs-light: var(--gvd-light);
+            --bs-light-rgb: 242, 243, 244;
+        }
+        
+        body {
+            font-family: 'Fira Sans', sans-serif;
+            background-color: #f8f9fa;
+        }
+        h1, h2, h3, h4, h5, h6, .navbar-brand, .card-title {
+    font-family: 'Axiforma', 'Fira Sans', sans-serif;
+}
+        .navbar {
+            background-color: var(--gvd-dark) !important;
+        }
+        
+        .btn-primary {
+            background-color: var(--gvd-orange);
+            border-color: var(--gvd-orange);
+        }
+        
+        .btn-primary:hover, .btn-primary:focus {
+            background-color: #e07406;
+            border-color: #e07406;
+        }
+        
+        .btn-outline-primary {
+            color: var(--gvd-orange);
+            border-color: var(--gvd-orange);
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: var(--gvd-orange);
+            border-color: var(--gvd-orange);
+        }
+        
+        .bg-primary {
+            background-color: var(--gvd-orange) !important;
+        }
+        
+        .text-primary {
+            color: var(--gvd-orange) !important;
+        }
+        
+        .card-header.bg-primary {
+            background-color: var(--gvd-orange) !important;
+        }
+        
+        .card {
+            border-radius: 0.5rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            border: none;
+        }
+        
+        .card-header {
+            border-top-left-radius: 0.5rem !important;
+            border-top-right-radius: 0.5rem !important;
+            font-weight: 500;
+        }
+        
+        /* Classes de alerta padronizadas */
+        .badge.bg-warning {
+            background-color: #FFCC80 !important;
+            color: #543800;
+        }
+        
+        .badge.bg-success {
+            background-color: #81C784 !important;
+            color: #1B4E1B;
+        }
+        
+        .badge.bg-danger {
+            background-color: var(--gvd-red) !important;
+        }
+        
+        .bg-info {
+            background-color: #4A6572 !important;
+        }
+        
+        /* Footer estilizado */
+        .footer {
+            background-color: var(--gvd-dark) !important;
+            color: var(--gvd-light) !important;
+        }
+        
+        .footer .text-muted {
+            color: var(--gvd-light) !important;
+        }
+        
+        /* Logo GVD */
+        .navbar-brand {
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        
+        .navbar-brand .text-highlight {
+            color: var(--gvd-orange);
+        }
+
+        .navbar-brand img {
+            max-height: 40px;
+            transition: transform 0.3s ease;
+        }
+
+        .navbar-brand:hover img {
+            transform: scale(1.05);
+        }
+
+        /* Se precisar ajustar o alinhamento vertical */
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+        }
+    </style>
+    
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <!-- Navbar -->
-<!-- Apenas a parte do navbar atualizada -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
-    <div class="container">
-        <a class="navbar-brand" href="{% url 'dashboard' %}">
-            <i class="fas fa-chart-line me-2"></i>Sistema Financeiro GVD
-        </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav">
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'dashboard' %}">
-                        <i class="fas fa-tachometer-alt me-1"></i>Dashboard
-                    </a>
-                </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-file-invoice-dollar me-1"></i>Contas
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="{% url 'account-list' %}?type=PAYABLE">A Pagar</a></li>
-                        <li><a class="dropdown-item" href="{% url 'account-list' %}?type=RECEIVABLE">A Receber</a></li>
-                        <li><a class="dropdown-item" href="{% url 'account-list' %}">Todas as Contas</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="{% url 'account-create' %}">Nova Conta</a></li>
-                    </ul>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'category-list' %}">
-                        <i class="fas fa-tags me-1"></i>Categorias
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'responsible-list' %}">
-                        <i class="fas fa-users me-1"></i>Responsáveis
-                    </a>
-                </li>
-                <!-- Comentado temporariamente até implementarmos os relatórios
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'report-list' %}">
-                        <i class="fas fa-chart-bar me-1"></i>Relatórios
-                    </a>
-                </li>
-                -->
-            </ul>
-            <ul class="navbar-nav ms-auto">
-                {% if user.is_authenticated %}
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-user me-1"></i>{{ user.get_full_name|default:user.username }}
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="{% url 'profile' %}">Meu Perfil</a></li>
-                        {% if user.is_staff %}
-                        <li><a class="dropdown-item" href="{% url 'admin:index' %}">Admin</a></li>
-                        {% endif %}
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="{% url 'logout' %}">Sair</a></li>
-                    </ul>
-                </li>
-                {% else %}
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'login' %}">Entrar</a>
-                </li>
-                {% endif %}
-            </ul>
+    <!-- Navbar com cores GVD -->
+    <nav class="navbar navbar-expand-lg navbar-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'dashboard' %}">
+                <img src="{% static 'images/logo-gvd.png' %}" alt="GVD" 
+                style="height: 25px; width: auto; max-height: 25px;" 
+                class="d-inline-block align-middle me-2">
+                <span class="d-none d-md-inline pt-2">Sistema Financeiro</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'dashboard' %}">
+                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-file-invoice-dollar me-1"></i>Contas
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'account-list' %}?type=PAYABLE">A Pagar</a></li>
+                            <li><a class="dropdown-item" href="{% url 'account-list' %}?type=RECEIVABLE">A Receber</a></li>
+                            <li><a class="dropdown-item" href="{% url 'account-list' %}">Todas as Contas</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'account-create' %}">Nova Conta</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'category-list' %}">
+                            <i class="fas fa-tags me-1"></i>Categorias
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'responsible-list' %}">
+                            <i class="fas fa-users me-1"></i>Responsáveis
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ms-auto">
+                    {% if user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user me-1"></i>{{ user.get_full_name|default:user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{% url 'profile' %}">Meu Perfil</a></li>
+                            {% if user.is_staff %}
+                            <li><a class="dropdown-item" href="{% url 'admin:index' %}">Admin</a></li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'logout' %}">Sair</a></li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'login' %}">Entrar</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
         </div>
-    </div>
-</nav>
+    </nav>
 
     <!-- Content -->
     <div class="container">
@@ -102,10 +228,10 @@
         {% block content %}{% endblock %}
     </div>
 
-    <!-- Footer -->
-    <footer class="footer mt-5 py-3 bg-light">
+    <!-- Footer com cores GVD -->
+    <footer class="footer mt-5 py-3">
         <div class="container text-center">
-            <span class="text-muted">Sistema Financeiro GVD &copy; {% now "Y" %}</span>
+            <span>Sistema Financeiro GVD &copy; {% now "Y" %}</span>
         </div>
     </footer>
 

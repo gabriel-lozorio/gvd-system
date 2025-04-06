@@ -143,3 +143,67 @@ class DashboardService:
             'payables_by_month': payables_by_month,
             'receivables_by_month': receivables_by_month
         }
+
+    @classmethod
+    def get_date_range_summary(cls, start_date, end_date):
+        """
+        Get financial summary for a specific date range
+        
+        Args:
+            start_date (date): Start date for the range
+            end_date (date): End date for the range
+            
+        Returns:
+            dict: Financial summary data for the period
+        """
+        # Payable accounts in the period
+        payables = Account.objects.filter(
+            type=Account.AccountType.PAYABLE,
+            due_date__gte=start_date,
+            due_date__lte=end_date
+        )
+        
+        # Receivable accounts in the period
+        receivables = Account.objects.filter(
+            type=Account.AccountType.RECEIVABLE,
+            due_date__gte=start_date,
+            due_date__lte=end_date
+        )
+        
+        # Total to pay
+        total_payable = payables.aggregate(total=Sum('original_amount'))['total'] or 0
+        
+        # Total to receive
+        total_receivable = receivables.aggregate(total=Sum('original_amount'))['total'] or 0
+        
+        # Total paid in the period
+        total_paid = Payment.objects.filter(
+            payment_date__gte=start_date,
+            payment_date__lte=end_date
+        ).aggregate(total=Sum('amount_paid'))['total'] or 0
+        
+        # Total received in the period
+        total_received = Receipt.objects.filter(
+            receipt_date__gte=start_date,
+            receipt_date__lte=end_date
+        ).aggregate(total=Sum('amount_received'))['total'] or 0
+        
+        # Overdue accounts
+        overdue_payables = payables.filter(
+            status=Account.AccountStatus.OVERDUE
+        ).count()
+        
+        overdue_receivables = receivables.filter(
+            status=Account.AccountStatus.OVERDUE
+        ).count()
+        
+        return {
+            'total_payable': total_payable,
+            'total_receivable': total_receivable,
+            'total_paid': total_paid,
+            'total_received': total_received,
+            'overdue_payables': overdue_payables,
+            'overdue_receivables': overdue_receivables,
+            'projected_balance': total_receivable - total_payable,
+            'actual_balance': total_received - total_paid
+        }

@@ -1,15 +1,39 @@
 <!-- templates/dashboard/partials/summary.html -->
 {% load currency_filters %}
 
-<div class="row">
-    <div class="col-md-12 mb-3">
-        <h5 class="text-center">{{ month_name }} de {{ year }}</h5>
+<div class="row mb-3">
+    <div class="col-md-4">
+        {% if start_date and end_date %}
+            <h5 class="text-center">Período: {{ month_name }}</h5>
+        {% else %}
+            <h5 class="text-center">{{ month_name }} de {{ year }}</h5>
+        {% endif %}
+    </div>
+    <div class="col-md-8">
+        <form id="date-filter-form" class="row g-2" hx-get="{% url 'dashboard-summary-partial' %}" hx-target="#dashboard-summary" hx-trigger="submit">
+            <div class="col-md-4">
+                <label for="start_date" class="form-label">Data Inicial</label>
+                <input type="date" id="start_date" name="start_date" class="form-control form-control-sm" value="{{ start_date|default:'' }}">
+            </div>
+            <div class="col-md-4">
+                <label for="end_date" class="form-label">Data Final</label>
+                <input type="date" id="end_date" name="end_date" class="form-control form-control-sm" value="{{ end_date|default:'' }}">
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
+                <button type="button" 
+                        class="btn btn-outline-secondary btn-sm ms-2" 
+                        hx-get="{% url 'dashboard-summary-partial' %}?reset=true" 
+                        hx-target="#dashboard-summary">Limpar</button>
+            </div>
+            <input type="hidden" name="period" value="{{ period }}">
+        </form>
     </div>
 </div>
 
 <div class="row">
     <div class="col-md-3 mb-3">
-        <div class="card text-white bg-danger h-100">
+        <div class="card text-white h-100" style="background-color: #F53101;">
             <div class="card-body">
                 <h5 class="card-title">Total a Pagar</h5>
                 <h2 class="card-text">R$ {{ summary.total_payable|currency_br }}</h2>
@@ -21,7 +45,7 @@
     </div>
     
     <div class="col-md-3 mb-3">
-        <div class="card text-white bg-success h-100">
+        <div class="card text-white h-100" style="background-color: #FA820D;">
             <div class="card-body">
                 <h5 class="card-title">Total a Receber</h5>
                 <h2 class="card-text">R$ {{ summary.total_receivable|currency_br }}</h2>
@@ -33,7 +57,7 @@
     </div>
     
     <div class="col-md-3 mb-3">
-        <div class="card text-white bg-info h-100">
+        <div class="card text-white h-100" style="background-color: #010911;">
             <div class="card-body">
                 <h5 class="card-title">Saldo Projetado</h5>
                 <h2 class="card-text">R$ {{ summary.projected_balance|currency_br }}</h2>
@@ -45,7 +69,7 @@
     </div>
     
     <div class="col-md-3 mb-3">
-        <div class="card text-white bg-primary h-100">
+        <div class="card text-white h-100" style="background-color: #4A6572;">
             <div class="card-body">
                 <h5 class="card-title">Saldo Real</h5>
                 <h2 class="card-text">R$ {{ summary.actual_balance|currency_br }}</h2>

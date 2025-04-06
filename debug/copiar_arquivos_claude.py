@@ -86,8 +86,8 @@ def copiar_arquivos(origem: str, destino: str, ignorados=None, selecionados=None
             print(f"Copiado: {caminho_origem} -> {caminho_destino}")
 
 if __name__ == "__main__":
-    diretorio_origem = r"C:\projects\financial-system\financial-system"
-    diretorio_destino = r"C:\projects\financial-system\financial-system-claude"
+    diretorio_origem = "/home/g-lozorio/Documentos/gvd/gvd-system"
+    diretorio_destino = "/home/g-lozorio/Documentos/gvd/gvd-system-claude"
     
     lista_ignorados = [
         # Ambientes e pastas do sistema
@@ -105,8 +105,8 @@ if __name__ == "__main__":
         # Outros
         ".gitgnore", "db.sqlite3",
 
-        #APIs e serviços
-
+        # CSS
+        "static/",
         # Itens específicos
         
     ]

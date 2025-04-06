@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
+    
     # Suas aplicações
     'apps.accounts',
     'apps.categories',
@@ -68,12 +69,6 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'seu-email@gmail.com'
 EMAIL_HOST_PASSWORD = 'sua-senha-app'
 """
-
-
-# No final do arquivo, adicione configurações para arquivos estáticos
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',
-]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -152,7 +147,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
-
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
