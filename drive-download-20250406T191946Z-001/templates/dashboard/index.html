@@ -1,0 +1,310 @@
+<!-- templates/dashboard/index.html -->
+{% extends "base.html" %}
+{% load currency_filters %}
+{% block title %}Dashboard - Sistema Financeiro{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Dashboard Financeiro</h1>
+    </div>
+</div>
+
+<!-- Resumo do período -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Resumo do Período</h5>
+                <div>
+                    <select 
+                        id="period-selector" 
+                        class="form-select form-select-sm"
+                        hx-get="{% url 'dashboard-summary-partial' %}"
+                        hx-target="#dashboard-summary"
+                        hx-trigger="change"
+                    >
+                        <option value="current">Mês Atual</option>
+                        <option value="last">Mês Anterior</option>
+                        <option value="next">Próximo Mês</option>
+                    </select>
+                </div>
+            </div>
+            <div class="card-body" id="dashboard-summary">
+                {% include "dashboard/partials/summary.html" %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gráficos -->
+<div class="row mb-4">
+    <!-- Contas por Tipo -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">Contas por Tipo</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="accounts-by-type-chart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Evolução Mensal -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">Evolução Mensal</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="monthly-evolution-chart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Categorias -->
+<div class="row mb-4">
+    <!-- Despesas por Categoria -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">Despesas por Categoria</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="expenses-by-category-chart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Receitas por Categoria -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">Receitas por Categoria</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="incomes-by-category-chart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Listagem rápida de contas -->
+<div class="row">
+    <!-- Próximas contas a pagar -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Próximas Contas a Pagar</h5>
+                <a href="{% url 'account-list' %}?type=PAYABLE" class="btn btn-sm btn-outline-primary">Ver Todas</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0">
+                        <thead>
+                            <tr>
+                                <th>Descrição</th>
+                                <th>Vencimento</th>
+                                <th>Valor</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for account in next_payable_accounts %}
+                            <tr>
+                                <td>{{ account.description }}</td>
+                                <td>{{ account.due_date|date:"d/m/Y" }}</td>
+                                <td>R$ {{ account.original_amount|currency_br }}</td>
+                                <td>
+                                    {% if account.status == 'OPEN' %}
+                                        <span class="badge bg-warning">Aberta</span>
+                                    {% elif account.status == 'OVERDUE' %}
+                                        <span class="badge bg-danger">Vencida</span>
+                                    {% else %}
+                                        <span class="badge bg-success">Paga</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-3">Nenhuma conta a pagar próxima.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Próximas contas a receber -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Próximas Contas a Receber</h5>
+                <a href="{% url 'account-list' %}?type=RECEIVABLE" class="btn btn-sm btn-outline-primary">Ver Todas</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0">
+                        <thead>
+                            <tr>
+                                <th>Descrição</th>
+                                <th>Vencimento</th>
+                                <th>Valor</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for account in next_receivable_accounts %}
+                            <tr>
+                                <td>{{ account.description }}</td>
+                                <td>{{ account.due_date|date:"d/m/Y" }}</td>
+                                <td>R$ {{ account.original_amount|currency_br }}</td>
+                                <td>
+                                    {% if account.status == 'OPEN' %}
+                                        <span class="badge bg-warning">Aberta</span>
+                                    {% elif account.status == 'OVERDUE' %}
+                                        <span class="badge bg-danger">Vencida</span>
+                                    {% else %}
+                                        <span class="badge bg-success">Recebida</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-3">Nenhuma conta a receber próxima.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Dados para os gráficos
+    const dashboardData = {{ dashboard_data|safe }};
+    
+    // Gráfico de contas por tipo
+    const accountsByTypeCtx = document.getElementById('accounts-by-type-chart').getContext('2d');
+    new Chart(accountsByTypeCtx, {
+        type: 'pie',
+        data: {
+            labels: ['A Pagar', 'A Receber'],
+            datasets: [{
+                data: [
+                    dashboardData.summary.total_payable,
+                    dashboardData.summary.total_receivable
+                ],
+                backgroundColor: ['#dc3545', '#198754'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                }
+            }
+        }
+    });
+    
+    // Gráfico de evolução mensal
+    const monthlyEvolutionCtx = document.getElementById('monthly-evolution-chart').getContext('2d');
+    new Chart(monthlyEvolutionCtx, {
+        type: 'line',
+        data: {
+            labels: dashboardData.evolution.months,
+            datasets: [
+                {
+                    label: 'Receitas',
+                    data: dashboardData.evolution.receivables,
+                    borderColor: '#198754',
+                    backgroundColor: 'rgba(25, 135, 84, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                },
+                {
+                    label: 'Despesas',
+                    data: dashboardData.evolution.payables,
+                    borderColor: '#dc3545',
+                    backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    
+    // Gráfico de despesas por categoria
+    const expensesByCategoryCtx = document.getElementById('expenses-by-category-chart').getContext('2d');
+    new Chart(expensesByCategoryCtx, {
+        type: 'bar',
+        data: {
+            labels: dashboardData.categories.payables.map(item => item.category),
+            datasets: [{
+                label: 'Valor (R$)',
+                data: dashboardData.categories.payables.map(item => item.total),
+                backgroundColor: '#dc3545',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            indexAxis: 'y',
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+    
+    // Gráfico de receitas por categoria
+    const incomesByCategoryCtx = document.getElementById('incomes-by-category-chart').getContext('2d');
+    new Chart(incomesByCategoryCtx, {
+        type: 'bar',
+        data: {
+            labels: dashboardData.categories.receivables.map(item => item.category),
+            datasets: [{
+                label: 'Valor (R$)',
+                data: dashboardData.categories.receivables.map(item => item.total),
+                backgroundColor: '#198754',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            indexAxis: 'y',
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

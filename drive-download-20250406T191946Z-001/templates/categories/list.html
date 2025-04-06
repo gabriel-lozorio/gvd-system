@@ -1,0 +1,56 @@
+<!-- templates/categories/list.html -->
+{% extends "base.html" %}
+{% block title %}Categorias - Sistema Financeiro{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h1>Categorias</h1>
+    </div>
+    <div class="col-md-6 text-md-end">
+        <a href="{% url 'category-create' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i>Nova Categoria
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped mb-0">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Descrição</th>
+                        <th>Categoria Pai</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for category in categories %}
+                    <tr>
+                        <td>{{ category.name }}</td>
+                        <td>{{ category.description|truncatechars:50 }}</td>
+                        <td>{{ category.parent.name|default:"-" }}</td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="{% url 'category-detail' category.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'category-update' category.id %}" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-3">Nenhuma categoria encontrada.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

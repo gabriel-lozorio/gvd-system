@@ -1,0 +1,118 @@
+<!-- templates/categories/form.html -->
+{% extends "base.html" %}
+{% block title %}{% if is_creating %}Nova Categoria{% else %}Editar Categoria{% endif %} - Sistema Financeiro{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h1>
+            {% if is_creating %}
+                Nova Categoria
+            {% else %}
+                Editar Categoria: {{ category.name }}
+            {% endif %}
+        </h1>
+    </div>
+    <div class="col-md-6 text-md-end">
+        <a href="{% url 'category-list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Voltar para Categorias
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">Dados da Categoria</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.name.id_for_label }}" class="form-label">Nome</label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.name.errors }}
+                        </div>
+                        {% endif %}
+                        <div class="form-text text-muted">
+                            O nome da categoria deve ser claro e objetivo.
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">Descrição</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.description.errors }}
+                        </div>
+                        {% endif %}
+                        <div class="form-text text-muted">
+                            Adicione uma descrição detalhada sobre a finalidade desta categoria.
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.parent.id_for_label }}" class="form-label">Categoria Pai</label>
+                        {{ form.parent }}
+                        {% if form.parent.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.parent.errors }}
+                        </div>
+                        {% endif %}
+                        <div class="form-text text-muted">
+                            Opcional. Selecione uma categoria pai para criar uma hierarquia organizada.
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-12">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Salvar Categoria
+                            </button>
+                            <a href="{% url 'category-list' %}" class="btn btn-outline-secondary ms-2">
+                                <i class="fas fa-times me-1"></i>Cancelar
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">Dicas</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6><i class="fas fa-lightbulb text-warning me-2"></i>Organizando Categorias</h6>
+                    <p class="small">
+                        Organize suas categorias em uma estrutura hierárquica para facilitar a classificação e os relatórios financeiros.
+                    </p>
+                </div>
+                
+                <div class="mb-3">
+                    <h6><i class="fas fa-info-circle text-info me-2"></i>Categorias e Relatórios</h6>
+                    <p class="small">
+                        Categorias bem definidas ajudam a gerar relatórios financeiros mais precisos e a entender melhor seus gastos e receitas.
+                    </p>
+                </div>
+                
+                <div>
+                    <h6><i class="fas fa-exclamation-triangle text-danger me-2"></i>Atenção</h6>
+                    <p class="small">
+                        Ao editar uma categoria, todas as contas associadas a ela continuarão vinculadas.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

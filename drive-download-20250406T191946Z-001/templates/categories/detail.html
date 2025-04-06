@@ -1,0 +1,157 @@
+<!-- templates/categories/detail.html -->
+{% extends "base.html" %}
+{% block title %}{{ category.name }} - Sistema Financeiro{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h1>Detalhes da Categoria</h1>
+    </div>
+    <div class="col-md-6 text-md-end">
+        <a href="{% url 'category-update' category.id %}" class="btn btn-secondary">
+            <i class="fas fa-edit me-1"></i>Editar
+        </a>
+        <a href="{% url 'category-list' %}" class="btn btn-outline-secondary ms-2">
+            <i class="fas fa-arrow-left me-1"></i>Voltar
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">Informações da Categoria</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <p class="text-muted mb-0">Nome</p>
+                        <p class="fw-bold">{{ category.name }}</p>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <p class="text-muted mb-0">Descrição</p>
+                        <p>{{ category.description|default:"Sem descrição" }}</p>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <p class="text-muted mb-0">Categoria Pai</p>
+                        <p class="fw-bold">{{ category.parent.name|default:"Nenhuma (categoria raiz)" }}</p>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p class="text-muted mb-0">Criada em</p>
+                        <p class="fw-bold">{{ category.created_at|date:"d/m/Y H:i" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="text-muted mb-0">Última atualização</p>
+                        <p class="fw-bold">{{ category.updated_at|date:"d/m/Y H:i" }}</p>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-12">
+                        <p class="text-muted mb-0">Caminho completo</p>
+                        <p class="fw-bold">{{ category.full_path }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <!-- Subcategorias (se houver) -->
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">Subcategorias</h5>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for subcategory in category.children.all %}
+                    <li class="list-group-item">
+                        <a href="{% url 'category-detail' subcategory.id %}" class="text-decoration-none">
+                            {{ subcategory.name }}
+                        </a>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item text-center py-3">
+                        Esta categoria não possui subcategorias.
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Contas relacionadas -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">Contas Relacionadas</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0">
+                        <thead>
+                            <tr>
+                                <th>Descrição</th>
+                                <th>Tipo</th>
+                                <th>Vencimento</th>
+                                <th>Valor</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for account in category.accounts.all|slice:":10" %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'account-detail' account.id %}" class="text-decoration-none">
+                                        {{ account.description }}
+                                    </a>
+                                </td>
+                                <td>{{ account.get_type_display }}</td>
+                                <td>{{ account.due_date|date:"d/m/Y" }}</td>
+                                <td>R$ {{ account.original_amount }}</td>
+                                <td>
+                                    {% if account.status == 'OPEN' %}
+                                        <span class="badge bg-warning">Em Aberto</span>
+                                    {% elif account.status == 'PAID' %}
+                                        <span class="badge bg-success">Paga</span>
+                                    {% elif account.status == 'OVERDUE' %}
+                                        <span class="badge bg-danger">Vencida</span>
+                                    {% elif account.status == 'PARTIALLY_PAID' %}
+                                        <span class="badge bg-info">Parcialmente Paga</span>
+                                    {% elif account.status == 'CANCELED' %}
+                                        <span class="badge bg-secondary">Cancelada</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-3">Nenhuma conta encontrada nesta categoria.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% if category.accounts.count > 10 %}
+                    <div class="text-center py-3">
+                        <a href="{% url 'account-list' %}?category={{ category.id }}" class="btn btn-sm btn-outline-primary">
+                            Ver todas as {{ category.accounts.count }} contas
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

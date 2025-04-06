@@ -1,0 +1,110 @@
+<!-- templates/responsibles/list.html -->
+{% extends "base.html" %}
+{% block title %}Responsáveis - Sistema Financeiro{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h1>Responsáveis</h1>
+    </div>
+    <div class="col-md-6 text-md-end">
+        <a href="{% url 'responsible-create' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i>Novo Responsável
+        </a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="card-title mb-0">Filtros</h5>
+    </div>
+    <div class="card-body">
+        <form method="get" id="filter-form" class="row g-3">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <input type="text" name="search" id="search" class="form-control" 
+                           placeholder="Buscar por nome ou email" value="{{ search_query }}">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="form-check">
+                    <input type="checkbox" name="show_inactive" id="show_inactive" 
+                           class="form-check-input" value="yes" 
+                           {% if show_inactive %}checked{% endif %}
+                           onChange="this.form.submit()">
+                    <label class="form-check-label" for="show_inactive">
+                        Mostrar inativos
+                    </label>
+                </div>
+            </div>
+            
+            <div class="col-md-2 text-end">
+                <a href="{% url 'responsible-list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times me-1"></i>Limpar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped mb-0">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Email</th>
+                        <th>Telefone</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for responsible in responsibles %}
+                    <tr{% if not responsible.is_active %} class="table-secondary"{% endif %}>
+                        <td>{{ responsible.name }}</td>
+                        <td>{{ responsible.email|default:"-" }}</td>
+                        <td>{{ responsible.phone|default:"-" }}</td>
+                        <td>
+                            {% if responsible.is_active %}
+                                <span class="badge bg-success">Ativo</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inativo</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="{% url 'responsible-detail' responsible.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'responsible-update' responsible.id %}" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'responsible-toggle-status' responsible.id %}" 
+                                   class="btn btn-sm {% if responsible.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}"
+                                   onclick="return confirm('Tem certeza que deseja {% if responsible.is_active %}desativar{% else %}ativar{% endif %} este responsável?')">
+                                    {% if responsible.is_active %}
+                                        <i class="fas fa-ban"></i>
+                                    {% else %}
+                                        <i class="fas fa-check"></i>
+                                    {% endif %}
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-3">Nenhum responsável encontrado.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,250 @@
+<!-- templates/accounts/detail.html -->
+{% extends "base.html" %}
+{% load currency_filters %}
+{% block title %}Detalhes da Conta - Sistema Financeiro{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h1>Detalhes da Conta</h1>
+    </div>
+    <div class="col-md-6 text-md-end">
+        {% if account.status != 'PAID' and account.status != 'CANCELED' %}
+            <a href="{% url 'account-update' account.id %}" class="btn btn-secondary">
+                <i class="fas fa-edit me-1"></i>Editar
+            </a>
+            
+            {% if account.type == 'PAYABLE' %}
+                <button 
+                    class="btn btn-success ms-2"
+                    hx-get="{% url 'account-payment-form' account.id %}"
+                    hx-target="#modal-container"
+                    hx-trigger="click"
+                >
+                    <i class="fas fa-money-bill me-1"></i>Registrar Pagamento
+                </button>
+            {% elif account.type == 'RECEIVABLE' %}
+                <button 
+                    class="btn btn-success ms-2"
+                    hx-get="{% url 'account-receipt-form' account.id %}"
+                    hx-target="#modal-container"
+                    hx-trigger="click"
+                >
+                    <i class="fas fa-hand-holding-usd me-1"></i>Registrar Recebimento
+                </button>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">Informações da Conta</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p class="text-muted mb-0">Tipo</p>
+                        <p class="fw-bold">{{ account.get_type_display }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="text-muted mb-0">Status</p>
+                        <p class="fw-bold">
+                            {% if account.status == 'OPEN' %}
+                                <span class="badge bg-warning">Em Aberto</span>
+                            {% elif account.status == 'PAID' %}
+                                <span class="badge bg-success">Paga</span>
+                            {% elif account.status == 'OVERDUE' %}
+                                <span class="badge bg-danger">Vencida</span>
+                            {% elif account.status == 'PARTIALLY_PAID' %}
+                                <span class="badge bg-info">Parcialmente Paga</span>
+                            {% elif account.status == 'CANCELED' %}
+                                <span class="badge bg-secondary">Cancelada</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p class="text-muted mb-0">Categoria</p>
+                        <p class="fw-bold">{{ account.category.name }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="text-muted mb-0">Responsável</p>
+                        <p class="fw-bold">{{ account.responsible_name|default:"Não informado" }}</p>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p class="text-muted mb-0">Data de Emissão</p>
+                        <p class="fw-bold">{{ account.issue_date|date:"d/m/Y" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="text-muted mb-0">Data de Vencimento</p>
+                        <p class="fw-bold">{{ account.due_date|date:"d/m/Y" }}</p>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <p class="text-muted mb-0">Descrição</p>
+                        <p class="fw-bold">{{ account.description|default:"Não informada" }}</p>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p class="text-muted mb-0">Valor Original</p>
+                        <p class="fw-bold">R$ {{ account.original_amount|currency_br }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="text-muted mb-0">Número do Documento</p>
+                        <p class="fw-bold">{{ account.document_number|default:"Não informado" }}</p>
+                    </div>
+                </div>
+                
+                {% if account.is_recurring %}
+                <div class="row">
+                    <div class="col-md-12">
+                        <p class="text-muted mb-0">Recorrência</p>
+                        <p class="fw-bold">
+                            {{ account.installment_count }} parcelas
+                            {% if account.periodicity_days %}
+                                a cada {{ account.periodicity_days }} dias
+                            {% elif account.specific_day_month %}
+                                no dia {{ account.specific_day_month }} de cada mês
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Transações relacionadas -->
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">
+                    {% if account.type == 'PAYABLE' %}
+                        Pagamentos
+                    {% else %}
+                        Recebimentos
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Local</th>
+                                <th>Valor</th>
+                                {% if account.type == 'RECEIVABLE' %}
+                                <th>Juros</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transaction in transactions %}
+                            <tr>
+                                {% if account.type == 'PAYABLE' %}
+                                <td>{{ transaction.payment_date|date:"d/m/Y" }}</td>
+                                <td>{{ transaction.payment_location }}</td>
+                                <td>R$ {{ transaction.amount_paid|currency_br }}</td>
+                                {% else %}
+                                <td>{{ transaction.receipt_date|date:"d/m/Y" }}</td>
+                                <td>{{ transaction.receipt_location }}</td>
+                                <td>R$ {{ transaction.amount_received|currency_br }}</td>
+                                <td>R$ {{ transaction.interest|currency_br }}</td>
+                                {% endif %}
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="{% if account.type == 'RECEIVABLE' %}4{% else %}3{% endif %}" class="text-center py-3">
+                                    {% if account.type == 'PAYABLE' %}
+                                        Nenhum pagamento registrado.
+                                    {% else %}
+                                        Nenhum recebimento registrado.
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <!-- Parcelas relacionadas (se for recorrente) -->
+        {% if child_installments %}
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">Parcelas</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0">
+                        <thead>
+                            <tr>
+                                <th>Vencimento</th>
+                                <th>Valor</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for installment in child_installments %}
+                            <tr>
+                                <td>{{ installment.due_date|date:"d/m/Y" }}</td>
+                                <td>R$ {{ installment.original_amount|currency_br }}</td>
+                                <td>
+                                    {% if installment.status == 'OPEN' %}
+                                    <span class="badge bg-warning">Em Aberto</span>
+                                    {% elif installment.status == 'PAID' %}
+                                    <span class="badge bg-success">Paga</span>
+                                    {% elif installment.status == 'OVERDUE' %}
+                                    <span class="badge bg-danger">Vencida</span>
+                                    {% elif installment.status == 'PARTIALLY_PAID' %}
+                                    <span class="badge bg-info">Parcialmente Paga</span>
+                                    {% elif installment.status == 'CANCELED' %}
+                                    <span class="badge bg-secondary">Cancelada</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">Informações Adicionais</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-1">Criado em</p>
+                <p class="fw-bold">{{ account.created_at|date:"d/m/Y H:i" }}</p>
+                
+                <p class="text-muted mb-1">Última atualização</p>
+                <p class="fw-bold">{{ account.updated_at|date:"d/m/Y H:i" }}</p>
+                
+                {% if account.status == 'OVERDUE' %}
+                <p class="text-muted mb-1">Dias em atraso</p>
+                <p class="fw-bold text-danger">{{ account.days_overdue }} dias</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para pagamentos e recebimentos -->
+<div id="modal-container"></div>
+{% endblock %}

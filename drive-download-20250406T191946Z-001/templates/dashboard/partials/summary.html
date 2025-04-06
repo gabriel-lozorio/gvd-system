@@ -1,0 +1,58 @@
+<!-- templates/dashboard/partials/summary.html -->
+{% load currency_filters %}
+
+<div class="row">
+    <div class="col-md-12 mb-3">
+        <h5 class="text-center">{{ month_name }} de {{ year }}</h5>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-danger h-100">
+            <div class="card-body">
+                <h5 class="card-title">Total a Pagar</h5>
+                <h2 class="card-text">R$ {{ summary.total_payable|currency_br }}</h2>
+                <p class="card-text">
+                    <small>{{ summary.overdue_payables }} conta(s) vencida(s)</small>
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-success h-100">
+            <div class="card-body">
+                <h5 class="card-title">Total a Receber</h5>
+                <h2 class="card-text">R$ {{ summary.total_receivable|currency_br }}</h2>
+                <p class="card-text">
+                    <small>{{ summary.overdue_receivables }} conta(s) vencida(s)</small>
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-info h-100">
+            <div class="card-body">
+                <h5 class="card-title">Saldo Projetado</h5>
+                <h2 class="card-text">R$ {{ summary.projected_balance|currency_br }}</h2>
+                <p class="card-text">
+                    <small>Recebido - A pagar</small>
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-primary h-100">
+            <div class="card-body">
+                <h5 class="card-title">Saldo Real</h5>
+                <h2 class="card-text">R$ {{ summary.actual_balance|currency_br }}</h2>
+                <p class="card-text">
+                    <small>Recebido - Pago</small>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,247 @@
+<!-- templates/accounts/form.html-->
+{% extends "base.html" %}
+{% block title %}{% if is_creating %}Nova Conta{% else %}Editar Conta{% endif %} - Sistema Financeiro{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1>
+            {% if is_creating %}
+                Nova Conta
+            {% else %}
+                Editar Conta
+            {% endif %}
+        </h1>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post" id="account-form">
+            {% csrf_token %}
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="{{ form.type.id_for_label }}" class="form-label">{{ form.type.label }}</label>
+                    {{ form.type }}
+                    {% if form.type.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.type.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="col-md-6">
+                    <label for="{{ form.category.id_for_label }}" class="form-label">{{ form.category.label }}</label>
+                    {{ form.category }}
+                    {% if form.category.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.category.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="{{ form.document_number.id_for_label }}" class="form-label">{{ form.document_number.label }}</label>
+                    {{ form.document_number }}
+                    {% if form.document_number.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.document_number.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="col-md-6">
+                    <label for="{{ form.related_responsible.id_for_label }}" class="form-label">{{ form.related_responsible.label }}</label>
+                    <div class="input-group">
+                        {{ form.related_responsible }}
+                        <a href="{% url 'responsible-create' %}" class="btn btn-outline-secondary" target="_blank">
+                            <i class="fas fa-plus"></i>
+                        </a>
+                    </div>
+                    {% if form.related_responsible.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.related_responsible.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="{{ form.issue_date.id_for_label }}" class="form-label">{{ form.issue_date.label }}</label>
+                    {{ form.issue_date }}
+                    {% if form.issue_date.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.issue_date.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="col-md-6">
+                    <label for="{{ form.due_date.id_for_label }}" class="form-label">{{ form.due_date.label }}</label>
+                    {{ form.due_date }}
+                    {% if form.due_date.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.due_date.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <label for="{{ form.description.id_for_label }}" class="form-label">{{ form.description.label }}</label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.description.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="{{ form.original_amount.id_for_label }}" class="form-label">{{ form.original_amount.label }}</label>
+                    <div class="input-group">
+                        <span class="input-group-text">R$</span>
+                        {{ form.original_amount }}
+                    </div>
+                    {% if form.original_amount.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.original_amount.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-text text-muted">
+                        Digite o valor usando vírgula para separar os centavos (ex: 1.234,56).
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <div class="form-check form-switch">
+                        {{ form.is_recurring }}
+                        <label class="form-check-label" for="{{ form.is_recurring.id_for_label }}">{{ form.is_recurring.label }}</label>
+                    </div>
+                    {% if form.is_recurring.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.is_recurring.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Campos de recorrência (exibidos apenas quando is_recurring está marcado) -->
+            <div id="recurring-fields" class="d-none">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.installment_count.id_for_label }}" class="form-label">{{ form.installment_count.label }}</label>
+                        {{ form.installment_count }}
+                        {% if form.installment_count.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.installment_count.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.periodicity_days.id_for_label }}" class="form-label">{{ form.periodicity_days.label }}</label>
+                        {{ form.periodicity_days }}
+                        {% if form.periodicity_days.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.periodicity_days.errors }}
+                        </div>
+                        {% endif %}
+                        <div class="form-text">
+                            Insira a quantidade de dias entre cada parcela (ex: 30 para mensalidade).
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="{{ form.specific_day_month.id_for_label }}" class="form-label">{{ form.specific_day_month.label }}</label>
+                        {{ form.specific_day_month }}
+                        {% if form.specific_day_month.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.specific_day_month.errors }}
+                        </div>
+                        {% endif %}
+                        <div class="form-text">
+                            Dia específico do mês para vencimento (ex: 10 para todo dia 10). Deixe em branco se usar a periodicidade em dias.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>Salvar
+                    </button>
+                    <a href="{% url 'account-list' %}" class="btn btn-outline-secondary ms-2">
+                        <i class="fas fa-times me-1"></i>Cancelar
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Campos de recorrência - versão mais robusta
+    const isRecurringCheckbox = document.querySelector('input[name="is_recurring"]');
+    const recurringFields = document.getElementById('recurring-fields');
+    
+    if (isRecurringCheckbox && recurringFields) {
+        console.log("Found recurring checkbox and fields");
+        
+        function toggleRecurringFields() {
+            console.log("Toggle recurring fields, checked:", isRecurringCheckbox.checked);
+            if (isRecurringCheckbox.checked) {
+                recurringFields.classList.remove('d-none');
+            } else {
+                recurringFields.classList.add('d-none');
+            }
+        }
+        
+        // Inicializa o estado
+        toggleRecurringFields();
+        
+        // Adiciona o event listener
+        isRecurringCheckbox.addEventListener('change', toggleRecurringFields);
+        console.log("Added event listener");
+    } else {
+        console.error("Could not find recurring checkbox or fields:", 
+                     isRecurringCheckbox ? "Checkbox found" : "Checkbox missing", 
+                     recurringFields ? "Fields found" : "Fields missing");
+    }
+    
+    // Campo de valor original
+    var originalAmountField = document.getElementById('id_original_amount');
+    if (originalAmountField) {
+        originalAmountField.addEventListener('blur', function() {
+            if (!this.value || this.value.trim() === '') return;
+            
+            // Remove pontos, substitui vírgula por ponto para cálculo
+            var numValue = this.value.replace(/\./g, '').replace(',', '.');
+            
+            // Converte para número
+            numValue = parseFloat(numValue);
+            
+            // Se for um número válido, formata com 2 casas decimais e vírgula
+            if (!isNaN(numValue)) {
+                this.value = numValue.toFixed(2).replace('.', ',');
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,78 @@
+<!-- templates/accounts/payment_form_modal.html (Partial para o modal de pagamento) -->
+{% load currency_filters %}
+<div class="modal fade" id="payment-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Registrar Pagamento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form hx-post="{% url 'account-register-payment' account.id %}" hx-swap="outerHTML">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="account_info" class="form-label">Conta</label>
+                        <input type="text" class="form-control" id="account_info" value="{{ account.description }} - R$ {{ account.original_amount|currency_br }}" readonly>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="payment_date" class="form-label">Data de Pagamento</label>
+                        <input type="date" name="payment_date" id="payment_date" class="form-control" value="{{ today|date:'Y-m-d' }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="payment_location" class="form-label">Local de Pagamento</label>
+                        <input type="text" name="payment_location" id="payment_location" class="form-control" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="amount_paid" class="form-label">Valor Pago</label>
+                        <div class="input-group">
+                            <span class="input-group-text">R$</span>
+                            <input type="text" name="amount_paid" id="amount_paid" class="form-control" value="{{ account.original_amount|currency_br }}" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Registrar Pagamento</button>
+                </div>
+                {% csrf_token %}
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    // Inicializa o modal
+    var modal = new bootstrap.Modal(document.getElementById('payment-modal'));
+    modal.show();
+    
+    // Adiciona formatação no campo de valor
+    document.getElementById('amount_paid').addEventListener('blur', function() {
+        if (!this.value || this.value.trim() === '') {
+            return;
+        }
+        
+        try {
+            // Substitui pontos por nada (remove separador de milhares) e vírgula por ponto
+            let value = this.value.replace(/\./g, '').replace(',', '.');
+            
+            // Converte para número
+            let numValue = parseFloat(value);
+            
+            // Se for um número válido, formata com 2 casas decimais
+            if (!isNaN(numValue)) {
+                this.value = numValue.toFixed(2).replace('.', ',');
+            }
+        } catch (e) {
+            console.error("Erro ao formatar valor:", e);
+        }
+    });
+    
+    // Converter vírgula para ponto ao enviar o formulário
+    document.querySelector('form').addEventListener('submit', function() {
+        var amountField = document.getElementById('amount_paid');
+        if (amountField.value) {
+            amountField.value = amountField.value.replace(/\./g, '').replace(',', '.');
+        }
+    });
+</script>

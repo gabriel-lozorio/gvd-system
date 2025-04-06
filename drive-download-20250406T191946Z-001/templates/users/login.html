@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Login - Sistema Financeiro{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white text-center py-3">
+                <h4 class="mb-0"><i class="fas fa-lock me-2"></i>Login</h4>
+            </div>
+            
+            <div class="card-body p-4">
+                {% if form.errors %}
+                <div class="alert alert-danger">
+                    <strong>Erro:</strong> Usuário ou senha incorretos. Por favor, tente novamente.
+                </div>
+                {% endif %}
+
+                <form method="post" action="{% url 'login' %}">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="id_username" class="form-label">Usuário</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                            <input type="text" name="username" id="id_username" class="form-control" placeholder="Nome de usuário" required autofocus>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_password" class="form-label">Senha</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-key"></i></span>
+                            <input type="password" name="password" id="id_password" class="form-control" placeholder="Senha" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" name="remember" id="id_remember" class="form-check-input">
+                        <label class="form-check-label" for="id_remember">Lembrar-me</label>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt me-2"></i>Entrar
+                        </button>
+                    </div>
+                    
+                    <input type="hidden" name="next" value="{{ next }}">
+                </form>
+            </div>
+            
+            <div class="card-footer text-center py-3">
+                <div class="mb-2">
+                    <a href="{% url 'password_reset' %}" class="text-decoration-none">Esqueceu sua senha?</a>
+                </div>
+                <div>
+                    Não tem uma conta?
+                    <a href="{% url 'register' %}" class="text-decoration-none">Cadastre-se</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
