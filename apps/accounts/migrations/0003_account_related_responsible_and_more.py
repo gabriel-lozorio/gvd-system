@@ -9,7 +9,6 @@ class Migration(migrations.Migration):
     dependencies = [
         ('responsibles', '0001_initial'),
         ('accounts', '0002_add_responsible_name_field'),
-        ('responsibles', '__first__'),
     ]
 
     operations = [

@@ -31,7 +31,7 @@ def dashboard(request):
         status=Account.AccountStatus.OPEN,
         due_date__gte=today,
         due_date__lte=today + timedelta(days=30)
-    ).order_by('due_date')[:5]
+    ).select_related('category').order_by('due_date')[:5]
     
     # Próximas contas a receber (próximos 30 dias)
     next_receivable_accounts = Account.objects.filter(
