@@ -107,6 +107,7 @@ if __name__ == "__main__":
 
         # CSS
         "static/",
+        "staticfiles/",
         # Itens específicos
         
     ]
