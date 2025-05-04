@@ -7,11 +7,6 @@ set -e
 MAX_RETRIES=30
 RETRY_INTERVAL=5
 
-# No seu repositório local, antes do push
-chmod +x entrypoint.sh
-git add entrypoint.sh
-git commit -m "Make entrypoint.sh executable"
-
 # Functions
 function log() {
     echo "[$(date +"%Y-%m-%d %H:%M:%S")] $1"

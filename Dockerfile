@@ -1,33 +1,51 @@
-# Dockerfile
-FROM python:3.11-slim
+FROM python:3.11-alpine AS builder
+WORKDIR /app
 
-# Variáveis de ambiente para Python
+# Install build dependencies
+RUN apk update && apk upgrade && apk add --no-cache \
+    gcc \
+    musl-dev \
+    postgresql-client \
+    postgresql-dev \
+    jpeg-dev \
+    zlib-dev
+
+# Copy and install requirements
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt --prefix=/install
+
+# Final stage
+FROM python:3.11-alpine
+WORKDIR /app
+
+# Install runtime dependencies only
+RUN apk update && apk upgrade && apk add --no-cache \
+    postgresql-client \
+    netcat-openbsd \
+    curl \
+    jpeg \
+    libpq
+
+# Copy dependencies from builder stage
+COPY --from=builder /install /usr/local
+
+# Create necessary directories
+RUN mkdir -p /app/staticfiles /app/media /var/log/django
+
+# Copy application code
+COPY . /app/
+
+# Environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Diretório de trabalho
-WORKDIR /app
-
-# Instalar dependências do sistema
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    postgresql-client \
-    libjpeg-dev \
-    zlib1g-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# Instalar dependências Python
-COPY requirements.txt /app/
-RUN pip install --upgrade pip && pip install -r requirements.txt
-
-# Copiar projeto
-COPY . /app/
-
-# Diretório para arquivos estáticos
-RUN mkdir -p /app/staticfiles /app/media
-
-# Porta
+# Port
 EXPOSE 8000
 
-# Executar o gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "config.wsgi:application"]
+# Entrypoint
+COPY entrypoint.sh /app/
+RUN chmod +x /app/entrypoint.sh
+ENTRYPOINT ["/app/entrypoint.sh"]
+
+# Run command
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120", "config.wsgi:application"]
