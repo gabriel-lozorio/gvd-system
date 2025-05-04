@@ -38,6 +38,7 @@
 │   │   ├── apps.py
 │   │   ├── models.py
 │   │   ├── permissions.py
+│   │   ├── urls.py
 │   │   └── views.py
 │   ├── dashboard/
 │   │   ├── __init__.py
@@ -86,6 +87,9 @@
 │   │   ├── urls.py
 │   │   └── views.py
 │   └── __init__.py
+├── backups/
+│   ├── backup_2025-05-04_17-12-35.sql.gz
+│   └── backup_2025-05-04_17-54-22.sql.gz
 ├── certbot/
 │   ├── conf/
 │   └── www/
@@ -102,8 +106,10 @@
 │   ├── estrutura.md
 │   ├── funcionalidades GVD 2.md
 │   └── planejamento de projeto.md
+├── media/
 ├── nginx/
-│   └── app.conf
+│   ├── app.conf
+│   └── default.conf
 ├── static/
 │   ├── css/
 │   │   └── gvd-fonts.css
@@ -337,9 +343,11 @@
 ├── docker-compose.yml
 ├── entrypoint.sh
 ├── fix_migrations.py
+├── get-docker.sh
 ├── manage.py
 ├── migrate_responsible_data.py
 ├── migrate_to_responsible_model.py
 ├── planejamento.md
 ├── requirements.txt
+├── setup_db.sh
 └── setup_db.sql

@@ -1,5 +1,5 @@
 #!/bin/bash
-# setup_db.sh - Create database and user using environment variables
+# setup_db.sh - Create database and user
 
 set -e
 
@@ -15,7 +15,7 @@ if [ -z "$POSTGRES_DB" ] || [ -z "$POSTGRES_USER" ] || [ -z "$POSTGRES_PASSWORD"
 fi
 
 # Create database and user
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+psql -v ON_ERROR_STOP=1 <<-EOSQL
     CREATE DATABASE $POSTGRES_DB;
     CREATE USER $POSTGRES_USER WITH PASSWORD '$POSTGRES_PASSWORD';
     ALTER ROLE $POSTGRES_USER SET client_encoding TO 'utf8';

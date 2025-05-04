@@ -23,7 +23,7 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 
 # Allow hosts from environment or default to specific domain
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '18.213.247.64').split(',')
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '44.197.194.83').split(',')
 
 # Use PostgreSQL in production
 DATABASES = {
