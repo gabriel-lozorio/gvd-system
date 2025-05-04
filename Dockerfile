@@ -1,7 +1,8 @@
-FROM python:3.11-alpine AS builder
+FROM python:3.11-alpine
+
 WORKDIR /app
 
-# Install build dependencies
+# Instalar dependências
 RUN apk update && apk upgrade && apk add --no-cache \
     gcc \
     musl-dev \
@@ -12,46 +13,23 @@ RUN apk update && apk upgrade && apk add --no-cache \
     curl \
     wget
 
-# Copy and install requirements
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt --prefix=/install
+# Copiar requirements primeiro (para melhor uso de cache)
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Final stage
-FROM python:3.11-alpine
-WORKDIR /app
-
-# Install runtime dependencies
-RUN apk update && apk upgrade && apk add --no-cache \
-    postgresql-client \
-    wget \
-    curl \
-    jpeg \
-    libpq
-
-# Create required directories
-RUN mkdir -p /app/staticfiles /app/media /var/log/django && \
-    chmod 777 /var/log/django
-
-# Copy dependencies from builder stage
-COPY --from=builder /install /usr/local
-
-# Copy application code
+# CORREÇÃO CRÍTICA: Copiar TODOS os arquivos para /app
 COPY . /app/
 
-# Environment variables
+# Garantir permissões de execução para o entrypoint
+RUN chmod +x /app/entrypoint.sh
+
+# Configuração de ambiente
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Ensure scripts are executable
-COPY entrypoint.sh /app/
-RUN chmod +x /app/entrypoint.sh && \
-    sed -i 's/\r$//' /app/entrypoint.sh
-
-# Expose port
+# Expor porta da aplicação
 EXPOSE 8000
 
-# Entrypoint
+# Executar entrypoint
 ENTRYPOINT ["/app/entrypoint.sh"]
-
-# Run command
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120", "config.wsgi:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "config.wsgi:application"]
