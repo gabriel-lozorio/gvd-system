@@ -1,18 +1,61 @@
 #!/bin/bash
 # entrypoint.sh
 
-# Esperar pelo banco de dados
-echo "Esperando pelo PostgreSQL..."
-while ! nc -z $POSTGRES_HOST $POSTGRES_PORT; do
-  sleep 0.1
-done
-echo "PostgreSQL iniciado"
+set -e
 
-# Aplicar migrações
-python manage.py migrate --noinput
+# Variables
+MAX_RETRIES=30
+RETRY_INTERVAL=5
 
-# Coletar arquivos estáticos
-python manage.py collectstatic --noinput
+# No seu repositório local, antes do push
+chmod +x entrypoint.sh
+git add entrypoint.sh
+git commit -m "Make entrypoint.sh executable"
 
-# Iniciar Gunicorn
+# Functions
+function log() {
+    echo "[$(date +"%Y-%m-%d %H:%M:%S")] $1"
+}
+
+function wait_for_service() {
+    local host=$1
+    local port=$2
+    local service_name=$3
+    
+    log "Waiting for $service_name at $host:$port..."
+    
+    local retries=0
+    while ! nc -z $host $port; do
+        retries=$((retries+1))
+        if [ $retries -ge $MAX_RETRIES ]; then
+            log "Error: $service_name did not become available in time"
+            exit 1
+        fi
+        log "$service_name not available yet. Retrying in $RETRY_INTERVAL seconds... ($retries/$MAX_RETRIES)"
+        sleep $RETRY_INTERVAL
+    done
+    
+    log "$service_name is available at $host:$port"
+}
+
+# Wait for PostgreSQL
+wait_for_service $POSTGRES_HOST $POSTGRES_PORT "PostgreSQL"
+
+# Wait for Redis if it's being used
+if [ -n "$REDIS_URL" ]; then
+    REDIS_HOST=$(echo $REDIS_URL | sed -E 's/redis:\/\/([^:]+).*/\1/')
+    REDIS_PORT=$(echo $REDIS_URL | sed -E 's/.*:([0-9]+).*/\1/')
+    wait_for_service $REDIS_HOST $REDIS_PORT "Redis"
+fi
+
+# Apply migrations
+log "Applying database migrations..."
+python manage.py migrate --noinput || { log "Migration failed"; exit 1; }
+
+# Collect static files
+log "Collecting static files..."
+python manage.py collectstatic --noinput || { log "Static files collection failed"; exit 1; }
+
+# Start application
+log "Starting application..."
 exec "$@"
