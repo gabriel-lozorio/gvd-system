@@ -115,8 +115,8 @@ DATABASES = {
         'NAME': os.environ.get('DB_NAME', 'financeiro_gvd'),
         'USER': os.environ.get('DB_USER', 'financeiro'),
         'PASSWORD': os.environ.get('DB_PASSWORD', 'sua_senha_segura'),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '5433'),
+        'HOST': os.environ.get('DB_HOST', 'db'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
 
@@ -171,7 +171,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Redis configuration (for Celery)
-REDIS_URL = 'redis://localhost:6379/0'
+REDIS_URL = os.environ.get('REDIS_URL', 'redis://redis:6379/0')
 
 # Configure Celery
 CELERY_BROKER_URL = REDIS_URL

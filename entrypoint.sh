@@ -1,62 +1,41 @@
-#!/bin/bash
-# entrypoint.sh
+#!/bin/sh
 
-set -e
+# Wait for database to be ready
+echo "Waiting for PostgreSQL..."
+# Fallback para valores padrão caso as variáveis não estejam definidas
+DB_HOST=${DB_HOST:-db}
+DB_PORT=${DB_PORT:-5432}
 
-# Variables
-MAX_RETRIES=30
-RETRY_INTERVAL=5
-
-# Functions
-function log() {
-    echo "[$(date +"%Y-%m-%d %H:%M:%S")] $1"
-}
-
-function wait_for_service() {
-    local host=$1
-    local port=$2
-    local service_name=$3
-    
-    log "Waiting for $service_name at $host:$port..."
-    
-    local retries=0
-    while ! wget -O /dev/null -q "http://$host:$port" >/dev/null 2>&1; do
-        retries=$((retries+1))
-        if [ $retries -ge $MAX_RETRIES ]; then
-            log "Error: $service_name did not become available in time"
-            exit 1
-        fi
-        log "$service_name not available yet. Retrying in $RETRY_INTERVAL seconds... ($retries/$MAX_RETRIES)"
-        sleep $RETRY_INTERVAL
-    done
-    
-    log "$service_name is available at $host:$port"
-}
-
-# Wait for PostgreSQL
-log "Waiting for PostgreSQL..."
-until pg_isready -h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER; do
-    log "PostgreSQL not ready yet - sleeping for 5 seconds"
-    sleep 5
+echo "Trying to connect to PostgreSQL at $DB_HOST:$DB_PORT..."
+# Use ping para verificar se o host é acessível
+until ping -c 1 $DB_HOST >/dev/null 2>&1; do
+  echo "PostgreSQL host not reachable, waiting..."
+  sleep 2
 done
-log "PostgreSQL is available now!"
 
-# Wait for Redis if it's being used
-if [ -n "$REDIS_URL" ]; then
-    REDIS_HOST=$(echo $REDIS_URL | sed -E 's/redis:\/\/([^:]+).*/\1/')
-    REDIS_PORT=$(echo $REDIS_URL | sed -E 's/.*:([0-9]+).*/\1/')
-    log "Waiting for Redis..."
-    wait_for_service $REDIS_HOST $REDIS_PORT "Redis"
-fi
+# Agora use nc para verificar a porta específica
+until nc -z $DB_HOST $DB_PORT; do
+  echo "PostgreSQL port not available, waiting..."
+  sleep 0.5
+done
+echo "PostgreSQL started"
 
-# Apply migrations
-log "Applying database migrations..."
-python manage.py migrate --noinput || { log "Migration failed"; exit 1; }
+# Wait for Redis
+echo "Waiting for Redis..."
+until nc -z redis 6379; do
+  echo "Redis not available, waiting..."
+  sleep 0.5
+done
+echo "Redis started"
+
+# Apply database migrations
+echo "Applying database migrations..."
+python manage.py migrate --noinput
 
 # Collect static files
-log "Collecting static files..."
-python manage.py collectstatic --noinput || { log "Static files collection failed"; exit 1; }
+echo "Collecting static files..."
+python manage.py collectstatic --noinput
 
-# Start application
-log "Starting application..."
+# Start Gunicorn
+echo "Starting service..."
 exec "$@"
