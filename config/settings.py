@@ -30,8 +30,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'insecure-development-key-change-in-pr
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['*', 'localhost', '127.0.0.1']
 
 # Application definition
 
@@ -146,8 +145,6 @@ LANGUAGE_CODE = 'pt-br'
 TIME_ZONE = 'America/Sao_Paulo'
 
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-DEBUG = False
-ALLOWED_HOSTS = ['seu-dominio.com', 'www.seu-dominio.com']
 
 USE_I18N = True
 
