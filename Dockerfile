@@ -27,21 +27,20 @@ COPY . .
 # Copiar wsgi.py atualizado
 RUN echo "import os\nfrom django.core.wsgi import get_wsgi_application\nos.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')\napplication = get_wsgi_application()" > /app/config/wsgi.py
 
-# Create directory for logs
-RUN mkdir -p /var/log/django && chmod 777 /var/log/django
-    
+# Create directory for logs and static files
+RUN mkdir -p /var/log/django /app/staticfiles /app/media
+
 # Copy entrypoint script
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 # Run as non-root user for better security
 RUN useradd -m appuser
-RUN chown -R appuser:appuser /app /var/log/django /app/staticfiles /app/media
+RUN chown -R appuser:appuser /app /var/log/django /app/staticfiles /app/media && \
+    chmod -R 755 /var/log/django /app/staticfiles /app/media && \
+    find /app -type d -exec chmod 755 {} \;
+
 USER appuser
 
-RUN mkdir -p /app/staticfiles /app/media \
-    && chmod -R 777 /app/staticfiles /app/media \
-    && find /app -type d -exec chmod 755 {} \;
-    
 # Run entrypoint script
 ENTRYPOINT ["/entrypoint.sh"]
