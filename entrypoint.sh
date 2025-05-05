@@ -1,8 +1,15 @@
 #!/bin/sh
+# entrypoint.sh: Container initialization script
+#
+# This script ensures that all required services are available before starting
+# the application. It will:
+# 1. Wait for PostgreSQL database to be ready
+# 2. Wait for Redis to be ready
+# 3. Apply database migrations
+# 4. Collect static files
+# 5. Start the application (command passed to the container)
 
-# Wait for database to be ready
-echo "Waiting for PostgreSQL..."
-# Fallback para valores padrão caso as variáveis não estejam definidas
+# Configure default connection parameters for PostgreSQL
 DB_HOST=${DB_HOST:-db}
 DB_PORT=${DB_PORT:-5432}
 
