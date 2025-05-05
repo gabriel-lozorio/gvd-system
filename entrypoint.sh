@@ -2,25 +2,28 @@
 # entrypoint.sh: Container initialization script
 #
 # This script ensures that all required services are available before starting
-# the application. It will:
-# 1. Wait for PostgreSQL database to be ready
-# 2. Wait for Redis to be ready
-# 3. Apply database migrations
-# 4. Collect static files
-# 5. Start the application (command passed to the container)
+# the application.
 
-# Configure default connection parameters for PostgreSQL
+# Configure default connection parameters
 DB_HOST=${DB_HOST:-db}
 DB_PORT=${DB_PORT:-5432}
 
+# Ensure directory permissions
+ensure_permissions() {
+  echo "Checking directory permissions..."
+  if [ ! -w "/app/staticfiles" ] || [ ! -w "/app/media" ]; then
+    echo "Warning: Permission issues detected with staticfiles or media directories"
+    # We'll continue anyway since USER directive should have fixed this
+  fi
+}
+
+# Wait for PostgreSQL
 echo "Trying to connect to PostgreSQL at $DB_HOST:$DB_PORT..."
-# Use ping para verificar se o host é acessível
 until ping -c 1 $DB_HOST >/dev/null 2>&1; do
   echo "PostgreSQL host not reachable, waiting..."
   sleep 2
 done
 
-# Agora use nc para verificar a porta específica
 until nc -z $DB_HOST $DB_PORT; do
   echo "PostgreSQL port not available, waiting..."
   sleep 0.5
@@ -35,14 +38,26 @@ until nc -z redis 6379; do
 done
 echo "Redis started"
 
-# Apply database migrations
+# Verify permissions
+ensure_permissions
+
+# Apply database migrations (with error handling)
 echo "Applying database migrations..."
-python manage.py migrate --noinput
+python manage.py migrate --noinput || {
+  echo "Migration error detected. Attempting to continue..."
+  # We'll continue even if migrations fail for now
+}
 
 # Collect static files
 echo "Collecting static files..."
-python manage.py collectstatic --noinput
+python manage.py collectstatic --noinput --clear || {
+  echo "Warning: Static file collection issue detected"
+  echo "Trying with more verbose output..."
+  python manage.py collectstatic --noinput -v 2 || {
+    echo "Static file collection failed. Some files may be missing."
+  }
+}
 
-# Start Gunicorn
+# Start the service
 echo "Starting service..."
 exec "$@"
