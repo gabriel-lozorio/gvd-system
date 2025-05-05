@@ -12,9 +12,9 @@ from .base import *  # noqa
 DEBUG = False
 
 # Strict security settings
-SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+SECURE_SSL_REDIRECT = False
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
@@ -23,7 +23,7 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 
 # Allow hosts from environment or default to specific domain
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '44.197.194.83').split(',')
+ALLOWED_HOSTS = ['44.197.194.83', 'localhost', '127.0.0.1']
 
 # Use PostgreSQL in production
 DATABASES = {
