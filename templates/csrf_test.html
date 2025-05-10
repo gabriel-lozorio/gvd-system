@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Teste de CSRF{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3>Teste de Verificação CSRF</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <p>Esta página é usada para testar a funcionalidade de proteção CSRF.</p>
+                        <p>Informações sobre a requisição atual:</p>
+                        <ul>
+                            <li><strong>É HTTPS?</strong> {{ request.is_secure }}</li>
+                            <li><strong>Host:</strong> {{ request.get_host }}</li>
+                            <li><strong>Método:</strong> {{ request.method }}</li>
+                            <li><strong>Token CSRF presente:</strong> {% if csrf_token %}Sim{% else %}Não{% endif %}</li>
+                        </ul>
+                    </div>
+
+                    <h4 class="mb-3">Formulário de Teste</h4>
+                    <form method="post" action="">
+                        {% csrf_token %}
+                        <div class="form-group mb-3">
+                            <label for="test_input">Campo de Teste:</label>
+                            <input type="text" class="form-control" id="test_input" name="test_input" value="Teste de envio">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Enviar Formulário</button>
+                    </form>
+
+                    {% if submitted_data %}
+                    <div class="mt-4">
+                        <h4>Dados enviados recebidos com sucesso!</h4>
+                        <pre>{{ submitted_data }}</pre>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <h5>Informações para Depuração</h5>
+                    <p>Cookie CSRF: <code>{{ csrf_cookie_value }}</code></p>
+                    <p>Nome do Cookie CSRF: <code>{{ csrf_cookie_name }}</code></p>
+                    <p>CSRF_TRUSTED_ORIGINS: <code>{{ csrf_trusted_origins }}</code></p>
+                    <p>CSRF_COOKIE_DOMAIN: <code>{{ csrf_cookie_domain }}</code></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Verificar o cookie CSRF e exibir informações
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Verificar o cookie CSRF
+        const csrfCookie = getCookie('{{ csrf_cookie_name }}');
+        if (csrfCookie) {
+            console.log('CSRF cookie encontrado:', csrfCookie);
+        } else {
+            console.error('CSRF cookie não encontrado!');
+        }
+    });
+</script>
+{% endblock %}

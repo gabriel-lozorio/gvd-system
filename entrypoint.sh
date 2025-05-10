@@ -41,6 +41,9 @@ echo "Redis started"
 # Verify permissions
 ensure_permissions
 
+# Create logs directory
+mkdir -p /app/logs
+
 # Print current settings module for diagnostic
 echo "Current Django settings module: $DJANGO_SETTINGS_MODULE"
 python -c "import os, sys; print(f'Python path: {sys.path}')"
@@ -62,6 +65,18 @@ python manage.py collectstatic --noinput --clear || {
     echo "Static file collection failed. Some files may be missing."
   }
 }
+
+# Verificar configurações CSRF
+echo "Verificando configurações CSRF..."
+python -c "from django.conf import settings; print(f'CSRF trusted origins: {settings.CSRF_TRUSTED_ORIGINS}')" || echo "Não foi possível verificar configurações CSRF"
+
+# Diagnosticar configuração atual
+echo "Configuração atual do sistema:"
+echo "DEBUG: $(python -c "from django.conf import settings; print(settings.DEBUG)")"
+echo "ALLOWED_HOSTS: $(python -c "from django.conf import settings; print(settings.ALLOWED_HOSTS)")"
+echo "CSRF_COOKIE_SECURE: $(python -c "from django.conf import settings; print(settings.CSRF_COOKIE_SECURE)")"
+echo "CSRF_COOKIE_DOMAIN: $(python -c "from django.conf import settings; print(settings.CSRF_COOKIE_DOMAIN)")"
+echo "SECURE_PROXY_SSL_HEADER: $(python -c "from django.conf import settings; print(settings.SECURE_PROXY_SSL_HEADER)")"
 
 # Start the service
 echo "Starting service..."
