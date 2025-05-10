@@ -41,6 +41,11 @@ echo "Redis started"
 # Verify permissions
 ensure_permissions
 
+# Print current settings module for diagnostic
+echo "Current Django settings module: $DJANGO_SETTINGS_MODULE"
+python -c "import os, sys; print(f'Python path: {sys.path}')"
+python -c "import os; from django.conf import settings; print(f'Debug mode: {settings.DEBUG}'); print(f'CSRF trusted origins: {settings.CSRF_TRUSTED_ORIGINS}')" || echo "Could not load Django settings"
+
 # Apply database migrations (with error handling)
 echo "Applying database migrations..."
 python manage.py migrate --noinput || {

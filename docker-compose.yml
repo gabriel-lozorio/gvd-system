@@ -45,7 +45,7 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_DB}
       - DB_PORT=${DB_PORT}
-      - DJANGO_SETTINGS_MODULE=config.settings.production
+      - DJANGO_SETTINGS_MODULE=config.settings
     volumes:
       - static_volume:/app/staticfiles
       - media_volume:/app/media

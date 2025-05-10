@@ -28,9 +28,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'insecure-development-key-change-in-production')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = ['*', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['gvd-system.com.br', 'www.gvd-system.com.br', '50.19.161.72', 'localhost', '127.0.0.1', '*']
 
 # Application definition
 
@@ -178,6 +178,34 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
 
+# Configuração de logging aprimorada para depuração de CSRF
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'django-csrf.log'),
+        },
+    },
+    'loggers': {
+        'django.security.csrf': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'django.request': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}
+
 # Configurações de segurança recomendadas
 SECURE_HSTS_SECONDS = 31536000
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
@@ -185,6 +213,8 @@ SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 SECURE_BROWSER_XSS_FILTER = True
+# Configurações de CSRF necessárias para HTTPS
 CSRF_TRUSTED_ORIGINS = ['https://gvd-system.com.br', 'https://www.gvd-system.com.br', 'http://gvd-system.com.br', 'http://www.gvd-system.com.br']
-CSRF_COOKIE_DOMAIN = '.gvd-system.com.br'
+CSRF_COOKIE_DOMAIN = None  # Será definido automaticamente com base no host da requisição
 CSRF_USE_SESSIONS = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
