@@ -5,10 +5,11 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.utils import timezone
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_POST
 from django.urls import reverse_lazy, reverse
 from django.utils.translation import gettext as _
+from django.views.decorators.csrf import csrf_exempt
 
 # Aplicações locais
 from apps.accounts.models import Account
@@ -343,3 +344,37 @@ def account_register_receipt(request, pk):
             return HttpResponse(f'<div class="alert alert-danger">{error_msg}</div>')
 
     return redirect('account-detail', pk=account.id)
+@login_required
+@require_POST
+def account_delete(request, pk):
+    """
+    Deletar uma conta
+    """
+    account = get_object_or_404(Account, pk=pk)
+    account_type = account.get_type_display()
+
+    try:
+        # Verificar se a conta possui pagamentos ou recebimentos antes de excluir
+        if account.type == Account.AccountType.PAYABLE and account.payments.exists():
+            # Deletar os pagamentos relacionados primeiro
+            account.payments.all().delete()
+
+        if account.type == Account.AccountType.RECEIVABLE and account.receipts.exists():
+            # Deletar os recebimentos relacionados primeiro
+            account.receipts.all().delete()
+
+        # Excluir a conta
+        account.delete()
+        messages.success(request, _(f"{account_type} excluída com sucesso!"))
+    except Exception as e:
+        messages.error(request, _(f"Erro ao excluir {account_type.lower()}: {str(e)}"))
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=400)
+
+    # Retornar resposta JSON em todos os casos
+    return JsonResponse({
+        'success': True,
+        'redirect': reverse('account-list')
+    })

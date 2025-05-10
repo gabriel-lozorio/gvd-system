@@ -99,8 +99,23 @@ def dashboard(request):
         }
     }
     
-    # Prepare initial month name
-    initial_month_name = datetime(today.year, today.month, 1).strftime('%B')
+    # Prepare initial month name in Portuguese
+    meses_pt = {
+        'January': 'Janeiro',
+        'February': 'Fevereiro',
+        'March': 'Março',
+        'April': 'Abril',
+        'May': 'Maio',
+        'June': 'Junho',
+        'July': 'Julho',
+        'August': 'Agosto',
+        'September': 'Setembro',
+        'October': 'Outubro',
+        'November': 'Novembro',
+        'December': 'Dezembro'
+    }
+    month_eng = datetime(today.year, today.month, 1).strftime('%B')
+    initial_month_name = meses_pt.get(month_eng, month_eng)
     
     context = {
         'next_payable_accounts': next_payable_accounts,
@@ -176,8 +191,24 @@ def dashboard_summary_partial(request):
     summary_data = DashboardService.get_date_range_summary(start_date, end_date)
     
     # Display name based on date range
+    meses_pt = {
+        'January': 'Janeiro',
+        'February': 'Fevereiro',
+        'March': 'Março',
+        'April': 'Abril',
+        'May': 'Maio',
+        'June': 'Junho',
+        'July': 'Julho',
+        'August': 'Agosto',
+        'September': 'Setembro',
+        'October': 'Outubro',
+        'November': 'Novembro',
+        'December': 'Dezembro'
+    }
+
     if (start_date == first_day and end_date == last_day):
-        month_name = datetime(year, month, 1).strftime('%B')
+        month_eng = datetime(year, month, 1).strftime('%B')
+        month_name = meses_pt.get(month_eng, month_eng)
     else:
         month_name = f"{start_date.strftime('%d/%m/%Y')} a {end_date.strftime('%d/%m/%Y')}"
     

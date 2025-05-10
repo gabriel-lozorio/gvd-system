@@ -14,9 +14,9 @@
             <a href="{% url 'account-update' account.id %}" class="btn btn-secondary">
                 <i class="fas fa-edit me-1"></i>Editar
             </a>
-            
+
             {% if account.type == 'PAYABLE' %}
-                <button 
+                <button
                     class="btn btn-success ms-2"
                     hx-get="{% url 'account-payment-form' account.id %}"
                     hx-target="#modal-container"
@@ -25,7 +25,7 @@
                     <i class="fas fa-money-bill me-1"></i>Registrar Pagamento
                 </button>
             {% elif account.type == 'RECEIVABLE' %}
-                <button 
+                <button
                     class="btn btn-success ms-2"
                     hx-get="{% url 'account-receipt-form' account.id %}"
                     hx-target="#modal-container"
@@ -35,6 +35,15 @@
                 </button>
             {% endif %}
         {% endif %}
+
+        <!-- Botão de excluir (disponível para contas com qualquer status) -->
+        <button
+            class="btn btn-danger ms-2"
+            data-bs-toggle="modal"
+            data-bs-target="#deleteModal"
+        >
+            <i class="fas fa-trash-alt me-1"></i>Excluir
+        </button>
     </div>
 </div>
 
@@ -248,5 +257,94 @@
 
 <!-- Modal para pagamentos e recebimentos -->
 <div id="modal-container"></div>
+
+<!-- Modal de confirmação de exclusão -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Confirmar Exclusão</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja excluir esta conta?</p>
+                <p><strong>{{ account.description }}</strong> - R$ {{ account.original_amount|currency_br }}</p>
+
+                {% if account.status == 'PAID' or account.status == 'PARTIALLY_PAID' %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Atenção: Esta conta já possui
+                        {% if account.type == 'PAYABLE' %}
+                            pagamentos
+                        {% else %}
+                            recebimentos
+                        {% endif %}
+                        registrados, que também serão excluídos.
+                    </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete" onclick="deleteAccount()">
+                    <i class="fas fa-trash-alt me-1"></i>Excluir
+                </button>
+
+                <script>
+                    function deleteAccount() {
+                        const url = "{% url 'account-delete' account.id %}";
+
+                        // Nova forma de obter o token CSRF do cookie
+                        function getCookie(name) {
+                            let cookieValue = null;
+                            if (document.cookie && document.cookie !== '') {
+                                const cookies = document.cookie.split(';');
+                                for (let i = 0; i < cookies.length; i++) {
+                                    const cookie = cookies[i].trim();
+                                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                        break;
+                                    }
+                                }
+                            }
+                            return cookieValue;
+                        }
+
+                        const csrfToken = getCookie('csrftoken');
+
+                        // Fechar o modal antes da requisição
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
+                        if (modal) {
+                            modal.hide();
+                        }
+
+                        fetch(url, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': csrfToken,
+                                'Content-Type': 'application/json',
+                                'HX-Request': 'true'
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success && data.redirect) {
+                                window.location.href = data.redirect;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('Erro ao excluir a conta. Tente novamente.');
+                        });
+                    }
+                </script>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Este script não é mais necessário pois estamos usando Fetch API diretamente -->
+<script>
+    // Função já implementada diretamente no modal
+</script>
 </div>
 {% endblock %}

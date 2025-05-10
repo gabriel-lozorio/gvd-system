@@ -34,7 +34,7 @@
 <div class="row">
     <div class="col-md-3 mb-3">
         <div class="card text-white h-100" style="background-color: #F53101;">
-            <div class="card-body">
+            <div class="card-body text-center d-flex flex-column justify-content-center">
                 <h5 class="card-title">Total a Pagar</h5>
                 <h2 class="card-text">R$ {{ summary.total_payable|currency_br }}</h2>
                 <p class="card-text">
@@ -47,7 +47,7 @@
     
     <div class="col-md-3 mb-3">
         <div class="card text-white h-100" style="background-color: #FA820D;">
-            <div class="card-body">
+            <div class="card-body text-center d-flex flex-column justify-content-center">
                 <h5 class="card-title">Total a Receber</h5>
                 <h2 class="card-text">R$ {{ summary.total_receivable|currency_br }}</h2>
                 <p class="card-text">
@@ -60,7 +60,7 @@
     
     <div class="col-md-3 mb-3">
         <div class="card text-white h-100" style="background-color: #010911;">
-            <div class="card-body">
+            <div class="card-body text-center d-flex flex-column justify-content-center">
                 <h5 class="card-title">Saldo Projetado</h5>
                 <h2 class="card-text">R$ {{ summary.projected_balance|currency_br }}</h2>
                 <p class="card-text">
@@ -72,7 +72,7 @@
     
     <div class="col-md-3 mb-3">
         <div class="card text-white h-100" style="background-color: #4A6572;">
-            <div class="card-body">
+            <div class="card-body text-center d-flex flex-column justify-content-center">
                 <h5 class="card-title">Saldo Real</h5>
                 <h2 class="card-text">R$ {{ summary.actual_balance|currency_br }}</h2>
                 <p class="card-text">
