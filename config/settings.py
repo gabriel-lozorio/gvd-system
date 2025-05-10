@@ -180,7 +180,7 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
 
-# Configuração de logging aprimorada para depuração de CSRF
+# Configuração de logging simplificada (apenas console)
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -189,18 +189,10 @@ LOGGING = {
             'class': 'logging.StreamHandler',
         },
     },
-    'loggers': {
-        'django.security.csrf': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-        'django.request': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    }
 }
 
 # Configurações de segurança recomendadas

@@ -1,11 +1,14 @@
 """
 Middleware customizado para melhorar o tratamento de CSRF
 """
-import logging
+import sys
 from django.middleware.csrf import CsrfViewMiddleware
 from django.conf import settings
 
-logger = logging.getLogger('django.security.csrf')
+# Usar stdout em vez de logging para evitar problemas com arquivos de log
+def log_debug(message):
+    if settings.DEBUG:
+        print(f"[CSRF DEBUG] {message}", file=sys.stderr)
 
 class DebugCsrfMiddleware(CsrfViewMiddleware):
     """
@@ -19,23 +22,23 @@ class DebugCsrfMiddleware(CsrfViewMiddleware):
         """
         # Log informações úteis para depuração
         if settings.DEBUG:
-            logger.debug("==== CSRF Debug Info ====")
-            logger.debug(f"Request path: {request.path}")
-            logger.debug(f"Request method: {request.method}")
-            logger.debug(f"Request META: {self._get_relevant_headers(request)}")
-            
+            log_debug("==== CSRF Debug Info ====")
+            log_debug(f"Request path: {request.path}")
+            log_debug(f"Request method: {request.method}")
+            log_debug(f"Request META: {self._get_relevant_headers(request)}")
+
             # Verificar cabeçalhos relacionados a CSRF
             csrf_token = request.META.get('HTTP_X_CSRFTOKEN', None)
             csrf_cookie = request.COOKIES.get(settings.CSRF_COOKIE_NAME, None)
-            
-            logger.debug(f"CSRF Token in header: {csrf_token}")
-            logger.debug(f"CSRF Cookie: {csrf_cookie}")
-            logger.debug(f"Host: {request.get_host()}")
-            logger.debug(f"Origin: {request.META.get('HTTP_ORIGIN', 'None')}")
-            logger.debug(f"Referer: {request.META.get('HTTP_REFERER', 'None')}")
-            logger.debug(f"X-Forwarded-Proto: {request.META.get('HTTP_X_FORWARDED_PROTO', 'None')}")
-            logger.debug(f"Is secure: {request.is_secure()}")
-            logger.debug(f"CSRF_TRUSTED_ORIGINS: {settings.CSRF_TRUSTED_ORIGINS}")
+
+            log_debug(f"CSRF Token in header: {csrf_token}")
+            log_debug(f"CSRF Cookie: {csrf_cookie}")
+            log_debug(f"Host: {request.get_host()}")
+            log_debug(f"Origin: {request.META.get('HTTP_ORIGIN', 'None')}")
+            log_debug(f"Referer: {request.META.get('HTTP_REFERER', 'None')}")
+            log_debug(f"X-Forwarded-Proto: {request.META.get('HTTP_X_FORWARDED_PROTO', 'None')}")
+            log_debug(f"Is secure: {request.is_secure()}")
+            log_debug(f"CSRF_TRUSTED_ORIGINS: {settings.CSRF_TRUSTED_ORIGINS}")
         
         # Chamar a implementação original
         return super().process_view(request, callback, callback_args, callback_kwargs)

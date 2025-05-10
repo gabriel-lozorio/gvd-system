@@ -41,8 +41,8 @@ echo "Redis started"
 # Verify permissions
 ensure_permissions
 
-# Create logs directory
-mkdir -p /app/logs
+# Limpeza de logs (simplificar configuração)
+echo "Simplificando configuração de logging..."
 
 # Print current settings module for diagnostic
 echo "Current Django settings module: $DJANGO_SETTINGS_MODULE"
