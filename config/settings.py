@@ -185,4 +185,6 @@ SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 SECURE_BROWSER_XSS_FILTER = True
-CSRF_TRUSTED_ORIGINS = ['https://gvd-system.com.br', 'https://www.gvd-system.com.br']
+CSRF_TRUSTED_ORIGINS = ['https://gvd-system.com.br', 'https://www.gvd-system.com.br', 'http://gvd-system.com.br', 'http://www.gvd-system.com.br']
+CSRF_COOKIE_DOMAIN = '.gvd-system.com.br'
+CSRF_USE_SESSIONS = True

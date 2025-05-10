@@ -24,7 +24,9 @@ SECURE_HSTS_PRELOAD = True
 
 # Configurações adicionais de segurança para HTTPS
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')  # Necessário para proxy HTTPS
-CSRF_TRUSTED_ORIGINS = ['https://gvd-system.com.br', 'https://www.gvd-system.com.br']
+CSRF_TRUSTED_ORIGINS = ['https://gvd-system.com.br', 'https://www.gvd-system.com.br', 'http://gvd-system.com.br', 'http://www.gvd-system.com.br']
+CSRF_COOKIE_DOMAIN = '.gvd-system.com.br'  # Compartilhar cookie entre subdomínios
+CSRF_USE_SESSIONS = True  # Armazenar tokens CSRF na sessão para maior segurança
 
 # Allow hosts from environment or default to specific domain
 ALLOWED_HOSTS = ['gvd-system.com.br', 'www.gvd-system.com.br', '50.19.161.72', 'localhost', '127.0.0.1']
