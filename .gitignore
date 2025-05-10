@@ -1,5 +1,6 @@
 # .gitignore
 .env
+.env.local
 *.pyc
 __pycache__/
 .DS_Store
@@ -10,3 +11,16 @@ backups/
 debug/
 venv/
 **/.claude/settings.local.json
+
+# Certificados SSL e configurações locais
+/ssl/
+ssl/
+.well-known/
+/etc/letsencrypt/
+/var/www/html/
+local_settings.py
+config/local_settings.py
+
+# Logs
+logs/
+*.log

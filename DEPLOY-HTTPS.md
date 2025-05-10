@@ -9,7 +9,7 @@ Este guia explica como configurar HTTPS no seu servidor para o Sistema Financeir
 - Docker e Docker Compose instalados e funcionando
 - Sistema já implantado e funcionando em HTTP
 
-## Passo 1: Obter Certificados SSL com Certbot
+## Passo 1: Obter Certificados SSL com Certbot ✅
 
 Certbot é a ferramenta oficial da EFF para obtenção de certificados Let's Encrypt, que são gratuitos e válidos por 90 dias (com renovação automática).
 
@@ -18,20 +18,17 @@ Certbot é a ferramenta oficial da EFF para obtenção de certificados Let's Enc
 sudo apt-get update
 sudo apt-get install certbot
 
-# Criar pasta para validação do Certbot
-sudo mkdir -p /var/www/html/.well-known/acme-challenge
+# Parar os contêineres Docker para liberar as portas (se necessário)
+cd ~/gvd/gvd-system && docker-compose down
 
-# Obter o certificado usando o modo standalone (temporariamente pára seu servidor web)
-sudo systemctl stop docker-compose@gvd-system  # Se estiver usando systemd
-# OU
-cd /home/seu-usuario/gvd-system && docker-compose down  # Se estiver gerenciando manualmente
-
-# Obter o certificado
+# Obter o certificado usando o modo standalone
 sudo certbot certonly --standalone -d gvd-system.com.br -d www.gvd-system.com.br
-
-# Se preferir o modo webroot (não precisa parar o servidor)
-# sudo certbot certonly --webroot -w /var/www/html -d gvd-system.com.br -d www.gvd-system.com.br
 ```
+
+✅ **CONCLUÍDO**: Os certificados foram instalados com sucesso em `/etc/letsencrypt/live/gvd-system.com.br/`.
+O Certbot configurou automaticamente a renovação através de um cronjob.
+
+**Importante**: Não adicione os certificados ao controle de versão. O arquivo `.gitignore` foi atualizado para excluir certificados e configurações locais.
 
 ## Passo 2: Configurar o NGINX (já feito)
 
@@ -52,14 +49,12 @@ O arquivo config/settings/production.py já foi atualizado para suportar HTTPS:
 ## Passo 4: Reiniciar os Serviços
 
 ```bash
-# Se você usa systemd
-sudo systemctl restart docker-compose@gvd-system
-
-# OU manualmente
-cd /home/seu-usuario/gvd-system
-docker-compose down
+# Reiniciar os contêineres Docker
+cd ~/gvd/gvd-system
 docker-compose up -d
 ```
+
+Isso irá iniciar os contêineres com a nova configuração HTTPS. O NGINX carregará os certificados SSL que o Certbot gerou.
 
 ## Passo 5: Testar o HTTPS
 
