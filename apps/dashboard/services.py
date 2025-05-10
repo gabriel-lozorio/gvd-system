@@ -23,18 +23,28 @@ class DashboardService:
         year = year or today.year
         month = month or today.month
         
-        # Contas a pagar do mês
-        payables = Account.objects.filter(
+        # Todas as contas a pagar do mês
+        all_payables = Account.objects.filter(
             type=Account.AccountType.PAYABLE,
             due_date__year=year,
             due_date__month=month
         )
-        
-        # Contas a receber do mês
-        receivables = Account.objects.filter(
+
+        # Apenas contas a pagar em aberto ou vencidas
+        payables = all_payables.filter(
+            status__in=[Account.AccountStatus.OPEN, Account.AccountStatus.OVERDUE]
+        )
+
+        # Todas as contas a receber do mês
+        all_receivables = Account.objects.filter(
             type=Account.AccountType.RECEIVABLE,
             due_date__year=year,
             due_date__month=month
+        )
+
+        # Apenas contas a receber em aberto ou vencidas
+        receivables = all_receivables.filter(
+            status__in=[Account.AccountStatus.OPEN, Account.AccountStatus.OVERDUE]
         )
         
         # Total a pagar
@@ -84,7 +94,7 @@ class DashboardService:
         year = year or today.year
         month = month or today.month
         
-        # Contas por categoria
+        # Contas a pagar por categoria - incluindo todas para estatística completa
         payables_by_category = Account.objects.filter(
             type=Account.AccountType.PAYABLE,
             due_date__year=year,
@@ -92,7 +102,8 @@ class DashboardService:
         ).values('category__name').annotate(
             total=Sum('original_amount')
         ).order_by('-total')
-        
+
+        # Contas a receber por categoria - incluindo todas para estatística completa
         receivables_by_category = Account.objects.filter(
             type=Account.AccountType.RECEIVABLE,
             due_date__year=year,
@@ -109,16 +120,27 @@ class DashboardService:
     @classmethod
     def get_monthly_evolution(cls, months=6):
         """
-        Obtém evolução mensal de receitas e despesas
+        Obtém evolução mensal de receitas e despesas - incluindo todas as contas para mostrar evolução histórica
         """
         today = timezone.now().date()
-        
+
         # Últimos X meses
         start_date = (today.replace(day=1) - timedelta(days=1)).replace(day=1)
         for i in range(months - 1):
             start_date = (start_date - timedelta(days=1)).replace(day=1)
-        
-        # Contas por mês
+
+        # Gerar lista de meses para garantir que todos sejam incluídos
+        month_list = []
+        current_date = start_date
+        while current_date <= today:
+            month_list.append(current_date.replace(day=1))
+            # Avançar para o próximo mês
+            if current_date.month == 12:
+                current_date = current_date.replace(year=current_date.year + 1, month=1)
+            else:
+                current_date = current_date.replace(month=current_date.month + 1)
+
+        # Inclua TODAS as contas, independente do status, para mostrar a evolução histórica completa
         payables_by_month = Account.objects.filter(
             type=Account.AccountType.PAYABLE,
             due_date__gte=start_date,
@@ -128,7 +150,7 @@ class DashboardService:
         ).values('month').annotate(
             total=Sum('original_amount')
         ).order_by('month')
-        
+
         receivables_by_month = Account.objects.filter(
             type=Account.AccountType.RECEIVABLE,
             due_date__gte=start_date,
@@ -138,10 +160,27 @@ class DashboardService:
         ).values('month').annotate(
             total=Sum('original_amount')
         ).order_by('month')
-        
+
+        # Adicionar meses vazios para garantir continuidade do gráfico
+        payables_dict = {item['month']: item['total'] for item in payables_by_month}
+        receivables_dict = {item['month']: item['total'] for item in receivables_by_month}
+
+        payables_result = []
+        receivables_result = []
+
+        for month in month_list:
+            payables_result.append({
+                'month': month,
+                'total': payables_dict.get(month, 0)
+            })
+            receivables_result.append({
+                'month': month,
+                'total': receivables_dict.get(month, 0)
+            })
+
         return {
-            'payables_by_month': payables_by_month,
-            'receivables_by_month': receivables_by_month
+            'payables_by_month': payables_result,
+            'receivables_by_month': receivables_result
         }
 
     @classmethod
@@ -156,18 +195,28 @@ class DashboardService:
         Returns:
             dict: Financial summary data for the period
         """
-        # Payable accounts in the period
-        payables = Account.objects.filter(
+        # All payable accounts in the period (for reference)
+        all_payables = Account.objects.filter(
             type=Account.AccountType.PAYABLE,
             due_date__gte=start_date,
             due_date__lte=end_date
         )
-        
-        # Receivable accounts in the period
-        receivables = Account.objects.filter(
+
+        # Only OPEN or OVERDUE payable accounts (to be paid)
+        payables = all_payables.filter(
+            status__in=[Account.AccountStatus.OPEN, Account.AccountStatus.OVERDUE]
+        )
+
+        # All receivable accounts in the period (for reference)
+        all_receivables = Account.objects.filter(
             type=Account.AccountType.RECEIVABLE,
             due_date__gte=start_date,
             due_date__lte=end_date
+        )
+
+        # Only OPEN or OVERDUE receivable accounts (to be received)
+        receivables = all_receivables.filter(
+            status__in=[Account.AccountStatus.OPEN, Account.AccountStatus.OVERDUE]
         )
         
         # Total to pay

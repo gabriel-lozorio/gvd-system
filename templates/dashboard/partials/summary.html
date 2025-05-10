@@ -38,7 +38,8 @@
                 <h5 class="card-title">Total a Pagar</h5>
                 <h2 class="card-text">R$ {{ summary.total_payable|currency_br }}</h2>
                 <p class="card-text">
-                    <small>{{ summary.overdue_payables }} conta(s) vencida(s)</small>
+                    <small>{{ summary.overdue_payables }} conta(s) vencida(s)</small><br>
+                    <small>Valor pago: R$ {{ summary.total_paid|currency_br }}</small>
                 </p>
             </div>
         </div>
@@ -50,7 +51,8 @@
                 <h5 class="card-title">Total a Receber</h5>
                 <h2 class="card-text">R$ {{ summary.total_receivable|currency_br }}</h2>
                 <p class="card-text">
-                    <small>{{ summary.overdue_receivables }} conta(s) vencida(s)</small>
+                    <small>{{ summary.overdue_receivables }} conta(s) vencida(s)</small><br>
+                    <small>Valor recebido: R$ {{ summary.total_received|currency_br }}</small>
                 </p>
             </div>
         </div>
@@ -62,7 +64,7 @@
                 <h5 class="card-title">Saldo Projetado</h5>
                 <h2 class="card-text">R$ {{ summary.projected_balance|currency_br }}</h2>
                 <p class="card-text">
-                    <small>Recebido - A pagar</small>
+                    <small>A receber - A pagar</small>
                 </p>
             </div>
         </div>

@@ -45,7 +45,41 @@ def dashboard(request):
     initial_summary = DashboardService.get_date_range_summary(first_day, last_day)
     category_data = DashboardService.get_category_summary(today.year, today.month)
     evolution_data = DashboardService.get_monthly_evolution()
-    
+
+    # Tratamento para categorias sem nome definido
+    for item in category_data['payables_by_category']:
+        if not item['category__name']:
+            item['category__name'] = 'Sem categoria'
+
+    for item in category_data['receivables_by_category']:
+        if not item['category__name']:
+            item['category__name'] = 'Sem categoria'
+
+    # Verifique se há meses correspondentes e pré-processe os dados
+    all_months = set()
+
+    # Coletar todos os meses disponíveis
+    for item in evolution_data['payables_by_month']:
+        all_months.add(item['month'].strftime('%b/%Y'))
+
+    for item in evolution_data['receivables_by_month']:
+        all_months.add(item['month'].strftime('%b/%Y'))
+
+    # Ordenar os meses
+    all_months = sorted(list(all_months),
+                      key=lambda x: datetime.strptime(x, '%b/%Y'))
+
+    # Criar dicionários para fácil lookup
+    payables_by_month = {item['month'].strftime('%b/%Y'): float(item['total'])
+                         for item in evolution_data['payables_by_month']}
+
+    receivables_by_month = {item['month'].strftime('%b/%Y'): float(item['total'])
+                           for item in evolution_data['receivables_by_month']}
+
+    # Preencher dados faltantes com 0
+    payables_values = [payables_by_month.get(month, 0) for month in all_months]
+    receivables_values = [receivables_by_month.get(month, 0) for month in all_months]
+
     dashboard_data = {
         'summary': initial_summary,
         'categories': {
@@ -59,9 +93,9 @@ def dashboard(request):
             ]
         },
         'evolution': {
-            'months': [item['month'].strftime('%b/%Y') for item in evolution_data['payables_by_month']],
-            'payables': [float(item['total']) for item in evolution_data['payables_by_month']],
-            'receivables': [float(item['total']) for item in evolution_data['receivables_by_month']]
+            'months': all_months,
+            'payables': payables_values,
+            'receivables': receivables_values
         }
     }
     

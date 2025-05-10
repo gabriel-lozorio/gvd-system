@@ -214,116 +214,246 @@
         
         // Gráfico de contas por tipo
         const accountsByTypeCtx = document.getElementById('accounts-by-type-chart').getContext('2d');
-        new Chart(accountsByTypeCtx, {
-            type: 'doughnut', // Alterado para doughnut para melhor controle de tamanho
-            data: {
-                labels: ['A Pagar', 'A Receber'],
-                datasets: [{
-                    data: [
-                        dashboardData.summary.total_payable,
-                        dashboardData.summary.total_receivable
-                    ],
-                    backgroundColor: [gvdColors.red, gvdColors.orange],
-                    borderWidth: 1,
-                    cutout: '50%' // Define o tamanho do buraco central no doughnut
-                }]
-            },
-            options: {
-                ...commonOptions,
-                // Centraliza a legenda e o gráfico
-                layout: {
-                    padding: {
-                        left: 20,
-                        right: 20,
-                        top: 20,
-                        bottom: 20
+
+        // Verificar se há dados suficientes
+        if (dashboardData.summary.total_payable > 0 || dashboardData.summary.total_receivable > 0) {
+            // Criar array de dados apenas para valores não-zero
+            const labels = [];
+            const data = [];
+            const colors = [];
+
+            if (dashboardData.summary.total_payable > 0) {
+                labels.push('A Pagar');
+                data.push(dashboardData.summary.total_payable);
+                colors.push(gvdColors.red);
+            }
+
+            if (dashboardData.summary.total_receivable > 0) {
+                labels.push('A Receber');
+                data.push(dashboardData.summary.total_receivable);
+                colors.push(gvdColors.orange);
+            }
+
+            new Chart(accountsByTypeCtx, {
+                type: 'doughnut', // Alterado para doughnut para melhor controle de tamanho
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colors,
+                        borderWidth: 1,
+                        cutout: '50%' // Define o tamanho do buraco central no doughnut
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    // Centraliza a legenda e o gráfico
+                    layout: {
+                        padding: {
+                            left: 20,
+                            right: 20,
+                            top: 20,
+                            bottom: 20
+                        }
                     }
                 }
-            }
-        });
+            });
+        } else {
+            // Mostrar uma mensagem quando não há dados
+            accountsByTypeCtx.canvas.style.height = '150px';
+            accountsByTypeCtx.font = '16px Arial';
+            accountsByTypeCtx.fillStyle = '#666';
+            accountsByTypeCtx.textAlign = 'center';
+            accountsByTypeCtx.fillText('Não há contas pendentes para exibir',
+                                     accountsByTypeCtx.canvas.width / 2,
+                                     accountsByTypeCtx.canvas.height / 2);
+        }
         
         // Gráfico de evolução mensal
         const monthlyEvolutionCtx = document.getElementById('monthly-evolution-chart').getContext('2d');
-        new Chart(monthlyEvolutionCtx, {
-            type: 'line',
-            data: {
-                labels: dashboardData.evolution.months,
-                datasets: [
-                    {
-                        label: 'Receitas',
-                        data: dashboardData.evolution.receivables,
-                        borderColor: gvdColors.orange,
-                        backgroundColor: 'rgba(250, 130, 13, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    },
-                    {
-                        label: 'Despesas',
-                        data: dashboardData.evolution.payables,
-                        borderColor: gvdColors.red,
-                        backgroundColor: 'rgba(245, 49, 1, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    }
-                ]
-            },
-            options: {
-                ...commonOptions,
-                scales: {
-                    y: {
-                        beginAtZero: true
+
+        // Verificar se há dados para mostrar
+        if (dashboardData.evolution.months.length > 0) {
+            new Chart(monthlyEvolutionCtx, {
+                type: 'line',
+                data: {
+                    labels: dashboardData.evolution.months,
+                    datasets: [
+                        {
+                            label: 'Receitas',
+                            data: dashboardData.evolution.receivables,
+                            borderColor: gvdColors.orange,
+                            backgroundColor: 'rgba(250, 130, 13, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Despesas',
+                            data: dashboardData.evolution.payables,
+                            borderColor: gvdColors.red,
+                            backgroundColor: 'rgba(245, 49, 1, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
                     }
                 }
-            }
-        });
+            });
+        } else {
+            // Mostrar uma mensagem quando não há dados
+            monthlyEvolutionCtx.canvas.style.height = '150px';
+            monthlyEvolutionCtx.font = '16px Arial';
+            monthlyEvolutionCtx.fillStyle = '#666';
+            monthlyEvolutionCtx.textAlign = 'center';
+            monthlyEvolutionCtx.fillText('Não há dados de evolução mensal para exibir',
+                                        monthlyEvolutionCtx.canvas.width / 2,
+                                        monthlyEvolutionCtx.canvas.height / 2);
+        }
         
         // Gráfico de despesas por categoria
         const expensesByCategoryCtx = document.getElementById('expenses-by-category-chart').getContext('2d');
-        new Chart(expensesByCategoryCtx, {
-            type: 'bar',
-            data: {
-                labels: dashboardData.categories.payables.map(item => item.category),
-                datasets: [{
-                    label: 'Valor (R$)',
-                    data: dashboardData.categories.payables.map(item => item.total),
-                    backgroundColor: gvdColors.red,
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                indexAxis: 'y',
-                plugins: {
-                    legend: {
-                        display: false
+
+        // Verificar se há dados para mostrar
+        if (dashboardData.categories.payables && dashboardData.categories.payables.length > 0) {
+            // Adicionar categoria "Sem categoria" se houver valores null
+            const categories = dashboardData.categories.payables.map(item =>
+                item.category === null || item.category === "" ? "Sem categoria" : item.category
+            );
+
+            new Chart(expensesByCategoryCtx, {
+                type: 'bar',
+                data: {
+                    labels: categories,
+                    datasets: [{
+                        label: 'Valor (R$)',
+                        data: dashboardData.categories.payables.map(item => item.total),
+                        backgroundColor: gvdColors.red,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.x !== null) {
+                                        label += new Intl.NumberFormat('pt-BR', {
+                                            style: 'currency',
+                                            currency: 'BRL'
+                                        }).format(context.parsed.x);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'R$ ' + value.toLocaleString('pt-BR');
+                                }
+                            }
+                        }
                     }
                 }
-            }
-        });
-        
+            });
+        } else {
+            // Mostrar uma mensagem quando não há dados
+            expensesByCategoryCtx.canvas.style.height = '150px';
+            expensesByCategoryCtx.font = '16px Arial';
+            expensesByCategoryCtx.fillStyle = '#666';
+            expensesByCategoryCtx.textAlign = 'center';
+            expensesByCategoryCtx.fillText('Não há despesas por categoria para exibir',
+                                         expensesByCategoryCtx.canvas.width / 2,
+                                         expensesByCategoryCtx.canvas.height / 2);
+        }
+
         // Gráfico de receitas por categoria
         const incomesByCategoryCtx = document.getElementById('incomes-by-category-chart').getContext('2d');
-        new Chart(incomesByCategoryCtx, {
-            type: 'bar',
-            data: {
-                labels: dashboardData.categories.receivables.map(item => item.category),
-                datasets: [{
-                    label: 'Valor (R$)',
-                    data: dashboardData.categories.receivables.map(item => item.total),
-                    backgroundColor: gvdColors.orange,
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                indexAxis: 'y',
-                plugins: {
-                    legend: {
-                        display: false
+
+        // Verificar se há dados para mostrar
+        if (dashboardData.categories.receivables && dashboardData.categories.receivables.length > 0) {
+            // Adicionar categoria "Sem categoria" se houver valores null
+            const categories = dashboardData.categories.receivables.map(item =>
+                item.category === null || item.category === "" ? "Sem categoria" : item.category
+            );
+
+            new Chart(incomesByCategoryCtx, {
+                type: 'bar',
+                data: {
+                    labels: categories,
+                    datasets: [{
+                        label: 'Valor (R$)',
+                        data: dashboardData.categories.receivables.map(item => item.total),
+                        backgroundColor: gvdColors.orange,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.x !== null) {
+                                        label += new Intl.NumberFormat('pt-BR', {
+                                            style: 'currency',
+                                            currency: 'BRL'
+                                        }).format(context.parsed.x);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'R$ ' + value.toLocaleString('pt-BR');
+                                }
+                            }
+                        }
                     }
                 }
-            }
-        });
+            });
+        } else {
+            // Mostrar uma mensagem quando não há dados
+            incomesByCategoryCtx.canvas.style.height = '150px';
+            incomesByCategoryCtx.font = '16px Arial';
+            incomesByCategoryCtx.fillStyle = '#666';
+            incomesByCategoryCtx.textAlign = 'center';
+            incomesByCategoryCtx.fillText('Não há receitas por categoria para exibir',
+                                         incomesByCategoryCtx.canvas.width / 2,
+                                         incomesByCategoryCtx.canvas.height / 2);
+        }
     });
     </script>
     
