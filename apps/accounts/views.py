@@ -221,13 +221,16 @@ def account_register_payment(request, pk):
     """
     Registrar um pagamento
     """
+    from django.urls import reverse
+
     account = get_object_or_404(Account, pk=pk)
-    
+
     if account.type != Account.AccountType.PAYABLE:
         messages.error(request, _("Só é possível registrar pagamentos para contas a pagar"))
         return redirect('account-detail', pk=account.id)
-    
+
     form = PaymentForm(request.POST)
+    form.instance.account = account  # Adiciona a conta ao formulário
     if form.is_valid():
         try:
             payment = PaymentService.register_payment(
@@ -236,12 +239,45 @@ def account_register_payment(request, pk):
                 payment_location=form.cleaned_data['payment_location'],
                 amount_paid=form.cleaned_data['amount_paid']
             )
+
+            # Verifica se a requisição foi feita via HTMX
+            if request.headers.get('HX-Request'):
+                # Retorna uma mensagem simples de sucesso
+                html = f'''
+                <div id="payment-success-message" class="alert alert-success mt-2 mb-3" style="position: fixed; top: 20%; left: 50%; transform: translateX(-50%); z-index: 9999; min-width: 300px; text-align: center; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                    <strong>Conta paga com sucesso!</strong>
+                </div>
+                <script>
+                    // Remove o modal se estiver aberto
+                    var modal = document.getElementById('payment-modal');
+                    if (modal) {{
+                        var bsModal = bootstrap.Modal.getInstance(modal);
+                        if (bsModal) bsModal.hide();
+                    }}
+
+                    // Exibe a mensagem por 1.5 segundos, garantindo que seja visível
+                    document.body.appendChild(document.getElementById('payment-success-message'));
+
+                    // Atualiza a página após 1.5 segundos para mostrar o novo status
+                    setTimeout(function() {{
+                        window.location.reload();
+                    }}, 1500);
+                </script>
+                '''
+                return HttpResponse(html)
+
             messages.success(request, _("Pagamento registrado com sucesso!"))
+
         except Exception as e:
             messages.error(request, str(e))
+            if request.headers.get('HX-Request'):
+                return HttpResponse(f'<div class="alert alert-danger">{str(e)}</div>')
     else:
-        messages.error(request, _("Erro ao registrar pagamento: ") + str(form.errors))
-    
+        error_msg = _("Erro ao registrar pagamento: ") + str(form.errors)
+        messages.error(request, error_msg)
+        if request.headers.get('HX-Request'):
+            return HttpResponse(f'<div class="alert alert-danger">{error_msg}</div>')
+
     return redirect('account-detail', pk=account.id)
 
 
@@ -251,13 +287,16 @@ def account_register_receipt(request, pk):
     """
     Registrar um recebimento
     """
+    from django.urls import reverse
+
     account = get_object_or_404(Account, pk=pk)
-    
+
     if account.type != Account.AccountType.RECEIVABLE:
         messages.error(request, _("Só é possível registrar recebimentos para contas a receber"))
         return redirect('account-detail', pk=account.id)
-    
+
     form = ReceiptForm(request.POST)
+    form.instance.account = account  # Adiciona a conta ao formulário
     if form.is_valid():
         try:
             receipt = ReceiptService.register_receipt(
@@ -266,10 +305,41 @@ def account_register_receipt(request, pk):
                 receipt_location=form.cleaned_data['receipt_location'],
                 amount_received=form.cleaned_data['amount_received']
             )
+            # Verifica se a requisição foi feita via HTMX
+            if request.headers.get('HX-Request'):
+                # Retorna uma div com mensagem de sucesso estilizada
+                html = f'''
+                <div id="receipt-success-message" class="alert alert-success mt-2 mb-3" style="position: fixed; top: 20%; left: 50%; transform: translateX(-50%); z-index: 9999; min-width: 300px; text-align: center; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                    <strong>Conta recebida com sucesso!</strong>
+                </div>
+                <script>
+                    // Remove o modal se estiver aberto
+                    var modal = document.getElementById('receipt-modal');
+                    if (modal) {{
+                        var bsModal = bootstrap.Modal.getInstance(modal);
+                        if (bsModal) bsModal.hide();
+                    }}
+
+                    // Exibe a mensagem por 1.5 segundos, garantindo que seja visível
+                    document.body.appendChild(document.getElementById('receipt-success-message'));
+
+                    // Atualiza a página após 1.5 segundos para mostrar o novo status
+                    setTimeout(function() {{
+                        window.location.reload();
+                    }}, 1500);
+                </script>
+                '''
+                return HttpResponse(html)
+
             messages.success(request, _("Recebimento registrado com sucesso!"))
         except Exception as e:
             messages.error(request, str(e))
+            if request.headers.get('HX-Request'):
+                return HttpResponse(f'<div class="alert alert-danger">{str(e)}</div>')
     else:
-        messages.error(request, _("Erro ao registrar recebimento: ") + str(form.errors))
-    
+        error_msg = _("Erro ao registrar recebimento: ") + str(form.errors)
+        messages.error(request, error_msg)
+        if request.headers.get('HX-Request'):
+            return HttpResponse(f'<div class="alert alert-danger">{error_msg}</div>')
+
     return redirect('account-detail', pk=account.id)

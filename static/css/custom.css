@@ -1,0 +1,116 @@
+/* Estilos customizados para o Sistema Financeiro GVD */
+
+/* Estilos gerais e de cards */
+.card {
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: none;
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    border-top-left-radius: 0.5rem !important;
+    border-top-right-radius: 0.5rem !important;
+    font-weight: 500;
+    padding: 0.75rem 1.25rem;
+}
+
+.card-body {
+    padding: 1.25rem;
+}
+
+/* Cores e badges */
+.badge {
+    padding: 0.35em 0.65em;
+    font-size: 0.85em;
+}
+
+.badge.bg-warning {
+    background-color: #FFCC80 !important;
+    color: #543800;
+}
+
+.badge.bg-success {
+    background-color: #81C784 !important;
+    color: #1B4E1B;
+}
+
+.badge.bg-danger {
+    background-color: #F53101 !important;
+}
+
+.badge.bg-info {
+    background-color: #4A6572 !important;
+}
+
+/* Estilos para campos de texto e rótulos */
+.text-muted {
+    color: #6c757d !important;
+}
+
+.fw-bold {
+    font-weight: 600 !important;
+}
+
+/* Tabelas */
+.table {
+    margin-bottom: 0;
+}
+
+.table th {
+    font-weight: 600;
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Estilos específicos de página */
+.account-detail-container .row {
+    margin-bottom: 1rem;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .row > div {
+        margin-bottom: 1rem;
+    }
+}
+
+/* Melhorias para notificações */
+.alert {
+    border-radius: 0.5rem;
+}
+
+.alert-success {
+    background-color: #e8f5e9;
+    border-color: #c8e6c9;
+    color: #2e7d32;
+}
+
+.alert-danger {
+    background-color: #ffebee;
+    border-color: #ffcdd2;
+    color: #c62828;
+}
+
+.alert-warning {
+    background-color: #fff8e1;
+    border-color: #ffecb3;
+    color: #f57f17;
+}
+
+.alert-info {
+    background-color: #e3f2fd;
+    border-color: #bbdefb;
+    color: #1565c0;
+}
