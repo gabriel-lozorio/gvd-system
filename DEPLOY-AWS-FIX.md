@@ -29,7 +29,7 @@ docker volume rm gvd-system_postgres_data
 # Certifique-se que o .env está com o conteúdo correto:
 cat > .env << EOF
 DEBUG=False
-ALLOWED_HOSTS=44.197.194.83,localhost,127.0.0.1
+ALLOWED_HOSTS=50.19.161.72,localhost,127.0.0.1
 
 DB_USER=financeiro
 DB_DB=financeiro_gvd

@@ -8,7 +8,7 @@ Garanta que o arquivo `.env` tenha exatamente este conteúdo:
 
 ```
 DEBUG=False
-ALLOWED_HOSTS=44.197.194.83,localhost,127.0.0.1
+ALLOWED_HOSTS=50.19.161.72,localhost,127.0.0.1
 
 DB_USER=financeiro
 DB_DB=financeiro_gvd
@@ -83,7 +83,7 @@ docker-compose exec web python manage.py createsuperuser
 
 Acesse o sistema pelo navegador:
 ```
-http://44.197.194.83
+http://50.19.161.72
 ```
 
 ## Problemas Conhecidos

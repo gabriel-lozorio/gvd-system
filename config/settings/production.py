@@ -23,7 +23,7 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 
 # Allow hosts from environment or default to specific domain
-ALLOWED_HOSTS = ['44.197.194.83', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['50.19.161.72', 'localhost', '127.0.0.1']
 
 # Use PostgreSQL in production
 DATABASES = {

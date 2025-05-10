@@ -2,7 +2,7 @@
 
 Este guia detalha o processo de deploy do Sistema GVD no AWS Lightsail.
 
-**IP público do Lightsail**: 44.197.194.83
+**IP público do Lightsail**: 50.19.161.72
 
 ## Arquivos Preparados Localmente
 
@@ -19,7 +19,7 @@ Os seguintes arquivos já estão configurados e prontos para uso:
 ### 1. Acesso ao Servidor AWS Lightsail
 
 ```bash
-ssh ubuntu@44.197.194.83
+ssh ubuntu@50.19.161.72
 ```
 
 ### 2. Instalação do Docker e Docker Compose
@@ -88,7 +88,7 @@ docker-compose logs web
 ### Verificar Acesso ao Sistema
 
 Acesse o sistema via navegador:
-- http://44.197.194.83
+- http://50.19.161.72
 
 ### Verificar Funcionalidade
 
