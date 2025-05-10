@@ -1,108 +1,31 @@
-# Deploy Simplificado no AWS Lightsail
+# Deploy no AWS Lightsail
 
-Este guia simplifica o processo de deploy do Sistema GVD no AWS Lightsail, preparando tudo localmente antes de implantar.
+Este guia detalha o processo de deploy do Sistema GVD no AWS Lightsail.
 
 **IP público do Lightsail**: 44.197.194.83
 
-## Preparação Local
+## Arquivos Preparados Localmente
 
-### 1. Prepare os arquivos de configuração
+Os seguintes arquivos já estão configurados e prontos para uso:
 
-1. **Altere o docker-compose.yml localmente**:
-   - Já alteramos para usar timeout de 120s e 2 workers:
-   ```yaml
-   command: gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 2 --timeout 120
-   ```
+- **docker-compose.yml**: Configurado com 2 workers e timeout de 120s
+- **nginx.conf**: Configurado com server_name genérico
+- **.env.aws**: Arquivo de ambiente para o servidor AWS
+- **backup-db.sh**: Script para backup do banco de dados
+- **monitor.sh**: Script para monitoramento do sistema
 
-2. **Altere o nginx.conf localmente**:
-   - Já alteramos para usar server_name genérico:
-   ```
-   server_name _;
-   ```
+## Passos para o Deploy
 
-3. **Crie um arquivo .env para o servidor**:
-   ```bash
-   # No seu ambiente local, crie um arquivo .env.aws
-   echo "DEBUG=False
-   ALLOWED_HOSTS=44.197.194.83,localhost,127.0.0.1
-
-   DB_USER=financeiro
-   DB_DB=financeiro_gvd
-   DB_HOST=db
-   DB_PORT=5432
-   DB_PASSWORD=MinHaSenHaF0rt3
-
-   REDIS_URL=redis://redis:6379/0
-   USE_REDIS=True
-
-   # Configurações de email (substitua pelos valores corretos)
-   EMAIL_HOST=smtp.example.com
-   EMAIL_PORT=587
-   EMAIL_USE_TLS=True
-   EMAIL_HOST_USER=seu-email@example.com
-   EMAIL_HOST_PASSWORD=sua-senha-email
-   DEFAULT_FROM_EMAIL=noreply@example.com" > .env.aws
-   ```
-
-4. **Crie scripts de manutenção**:
-   - Crie um arquivo `backup-db.sh`:
-   ```bash
-   echo '#!/bin/bash
-   BACKUP_DIR="./backups"
-   TIMESTAMP=$(date +%Y%m%d%H%M%S)
-   mkdir -p $BACKUP_DIR
-   docker-compose exec -T db pg_dump -U financeiro -d financeiro_gvd > $BACKUP_DIR/gvd_db_$TIMESTAMP.sql
-   gzip $BACKUP_DIR/gvd_db_$TIMESTAMP.sql
-   # Manter apenas os últimos 10 backups
-   ls -t $BACKUP_DIR/gvd_db_*.sql.gz | tail -n +11 | xargs --no-run-if-empty rm' > backup-db.sh
-   
-   chmod +x backup-db.sh
-   ```
-
-   - Crie um arquivo `monitor.sh`:
-   ```bash
-   echo '#!/bin/bash
-   echo "=== Monitoramento do Sistema GVD ==="
-   echo "Data: $(date)"
-   echo
-
-   # Verificar status dos contêineres
-   echo "=== Status dos Contêineres ==="
-   docker-compose ps
-   echo
-
-   # Verificar logs recentes do serviço web
-   echo "=== Logs Recentes do Serviço Web ==="
-   docker-compose logs --tail=20 web
-   echo
-
-   # Verificar espaço em disco
-   echo "=== Espaço em Disco ==="
-   df -h
-   echo' > monitor.sh
-   
-   chmod +x monitor.sh
-   ```
-
-5. **Commit as alterações**:
-   ```bash
-   git add docker-compose.yml nginx.conf backup-db.sh monitor.sh
-   git commit -m "Ajustes para deploy no AWS Lightsail"
-   git push
-   ```
-
-## Processo de Deploy no AWS Lightsail
-
-### 1. Acesso ao Servidor
+### 1. Acesso ao Servidor AWS Lightsail
 
 ```bash
-ssh ubuntu@44.197.194.83  # ou o usuário correto
+ssh ubuntu@44.197.194.83
 ```
 
-### 2. Instalação de Docker e Docker Compose
+### 2. Instalação do Docker e Docker Compose
 
 ```bash
-# Script de instalação completo (copie e cole de uma vez)
+# Instalação completa em um único bloco
 sudo apt update && \
 sudo apt install -y apt-transport-https ca-certificates curl software-properties-common && \
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add - && \
@@ -113,89 +36,199 @@ sudo usermod -aG docker $USER && \
 newgrp docker
 ```
 
-### 3. Clone do Repositório
+### 3. Clone e Configuração do Repositório
 
 ```bash
-# Clone o repositório para a pasta home
+# Clone o repositório
 cd ~
 git clone https://seu-repositorio-git/gvd-system.git
 cd gvd-system
-```
 
-### 4. Configuração do Ambiente
-
-```bash
-# Copie o arquivo .env.aws para .env
+# Configure o ambiente
 cp .env.aws .env
-
-# Crie os diretórios necessários
 mkdir -p logs backups
+
+# IMPORTANTE: Verifique se a senha do banco de dados está correta no arquivo .env
+# A senha correta para o usuário 'financeiro' é: 1eD0hdZz5Lbi
+# Se necessário, edite o arquivo:
+nano .env
 ```
 
-### 5. Inicialização dos Contêineres
+### 4. Inicialização do Sistema e Configuração do Django
 
 ```bash
 # Inicie os contêineres
 docker-compose up -d
-```
 
-### 6. Verificação do Sistema
-
-```bash
-# Verifique o status dos contêineres
+# Verifique o status
 docker-compose ps
 
+# Execute as migrações do Django
+docker-compose exec web python manage.py migrate
+
+# Colete arquivos estáticos
+docker-compose exec web python manage.py collectstatic --noinput
+
+# Crie um superusuário (seguir instruções interativas)
+docker-compose exec web python manage.py createsuperuser
+
 # Verifique os logs
-docker-compose logs -f web
+docker-compose logs web
 ```
 
-### 7. Configuração de Backup Automático
+### 5. Configuração do Backup Automático
 
 ```bash
-# Configure o crontab para backup diário às 3h
+# Configure backup diário às 3h
 (crontab -l 2>/dev/null; echo "0 3 * * * cd $HOME/gvd-system && ./backup-db.sh") | crontab -
 ```
 
+## Verificações Pós-Deploy
+
+### Verificar Acesso ao Sistema
+
+Acesse o sistema via navegador:
+- http://44.197.194.83
+
+### Verificar Funcionalidade
+
+- Teste o login
+- Verifique se os dados são exibidos corretamente
+- Teste a criação de registros
+
 ## Solução de Problemas
 
-### Se o sistema não iniciar corretamente:
-
-1. **Verifique os logs**:
-   ```bash
-   docker-compose logs web
-   docker-compose logs db
-   ```
-
-2. **Problemas com o banco de dados**:
-   ```bash
-   # Recrie os volumes (atenção: isso apaga os dados!)
-   docker-compose down -v
-   docker-compose up -d
-   ```
-
-3. **Problemas de permissão**:
-   ```bash
-   # Corrija as permissões da pasta logs
-   sudo chmod -R 777 logs
-   ```
-
-## Atualização do Sistema
+### Problema: Contêineres não iniciam
 
 ```bash
-# Obtenha as atualizações
-git pull
+# Verifique os logs
+docker-compose logs
 
-# Reinicie os contêineres
-docker-compose down
-docker-compose up -d
+# Se necessário, reinicie os contêineres
+docker-compose restart
 ```
 
-## Configuração de HTTPS (Opcional)
+### Problema: Banco de dados apresenta erros
+
+```bash
+# Verifique logs específicos do banco
+docker-compose logs db
+
+# Erro de autenticação com o banco de dados
+# Se aparecer "password authentication failed for user 'financeiro'"
+# você precisa corrigir o arquivo .env com a senha correta:
+nano .env
+# Verifique se a senha em DB_PASSWORD está correta (deve ser: 1eD0hdZz5Lbi)
+# Salve e reinicie os contêineres:
+docker-compose down
+docker-compose up -d
+
+# Verificar problemas de migração
+docker-compose exec web python manage.py showmigrations
+
+# Tentar rodar as migrações novamente
+docker-compose exec web python manage.py migrate
+
+# Em caso de problemas persistentes (⚠️ isso apaga os dados!)
+docker-compose down -v
+docker-compose up -d
+docker-compose exec web python manage.py migrate
+```
+
+### Problema: Timeout nos workers
+
+Os ajustes já foram feitos no docker-compose.yml (2 workers e 120s de timeout).
+Se ainda ocorrerem problemas:
+
+```bash
+docker-compose restart web
+```
+
+## Manutenção Contínua
+
+### Atualização do Sistema
+
+```bash
+# Faça backup antes de atualizar
+./backup-db.sh
+
+# Atualize o código
+git pull
+
+# Reinicie os serviços
+docker-compose down
+docker-compose up -d
+
+# Execute migrações do Django
+docker-compose exec web python manage.py migrate
+
+# Atualize arquivos estáticos
+docker-compose exec web python manage.py collectstatic --noinput
+```
+
+### Monitoramento Regular
+
+```bash
+# Execute o script de monitoramento
+./monitor.sh
+
+# Verifique os logs
+docker-compose logs --tail=50
+```
+
+### Backup Manual
+
+```bash
+# Execute o script de backup
+./backup-db.sh
+```
+
+## Comandos Django Úteis
+
+### Verificação do Sistema
+
+```bash
+# Verificar migrações pendentes
+docker-compose exec web python manage.py showmigrations
+
+# Listar URLs disponíveis
+docker-compose exec web python manage.py show_urls
+
+# Verificar consistência do banco de dados
+docker-compose exec web python manage.py check --database default
+
+# Shell do Django para testes
+docker-compose exec web python manage.py shell
+```
+
+### Comandos de Manutenção
+
+```bash
+# Limpar sessões expiradas
+docker-compose exec web python manage.py clearsessions
+
+# Criar backup usando o dumpdata
+docker-compose exec web python manage.py dumpdata --exclude auth.permission --exclude contenttypes > data_backup.json
+```
+
+## Configuração Adicional (Opcional)
+
+### Configurar HTTPS
 
 ```bash
 # Instale o Certbot
 sudo apt install -y certbot python3-certbot-nginx
 
-# Configure o certificado para seu domínio
+# Configure certificado para um domínio
 sudo certbot --nginx -d seu-dominio.com
+```
+
+### Configurar Firewall
+
+```bash
+sudo apt install -y ufw
+sudo ufw allow ssh
+sudo ufw allow http
+sudo ufw allow https
+sudo ufw enable
 ```
