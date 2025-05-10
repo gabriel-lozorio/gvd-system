@@ -207,31 +207,36 @@ LOGGING = {
 SECURE_HSTS_SECONDS = 31536000
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 
-# Verifique se estamos em produção ou desenvolvimento
-if DEBUG:
-    # Configurações para ambiente de desenvolvimento
-    SECURE_SSL_REDIRECT = False
-    SESSION_COOKIE_SECURE = False
-    CSRF_COOKIE_SECURE = False
-    CSRF_COOKIE_DOMAIN = None
-    SECURE_PROXY_SSL_HEADER = None
-else:
-    # Configurações para ambiente de produção (HTTPS)
-    SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    SECURE_BROWSER_XSS_FILTER = True
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    CSRF_COOKIE_DOMAIN = None  # Será definido automaticamente com base no host da requisição
+# Importar configurações específicas para o ambiente, se existirem
+try:
+    from .lightsail_settings import *
+    print("Configurações específicas para AWS Lightsail carregadas.")
+except ImportError:
+    # Configuração padrão se não estiver no Lightsail
+    if DEBUG:
+        # Configurações para ambiente de desenvolvimento
+        SECURE_SSL_REDIRECT = False
+        SESSION_COOKIE_SECURE = False
+        CSRF_COOKIE_SECURE = False
+        CSRF_COOKIE_DOMAIN = None
+        SECURE_PROXY_SSL_HEADER = None
+    else:
+        # Configurações para ambiente de produção (HTTPS)
+        SECURE_SSL_REDIRECT = True
+        SESSION_COOKIE_SECURE = True
+        CSRF_COOKIE_SECURE = True
+        SECURE_BROWSER_XSS_FILTER = True
+        SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+        CSRF_COOKIE_DOMAIN = None  # Será definido automaticamente com base no host da requisição
 
-# Configurações de CSRF necessárias para HTTPS - comum para ambos os ambientes
-CSRF_TRUSTED_ORIGINS = [
-    'https://gvd-system.com.br',
-    'https://www.gvd-system.com.br',
-    'http://gvd-system.com.br',
-    'http://www.gvd-system.com.br',
-    'http://localhost:8000',
-    'http://127.0.0.1:8000',
-    'http://0.0.0.0:8000'
-]
-CSRF_USE_SESSIONS = True
+    # Configurações de CSRF necessárias para HTTPS - comum para ambos os ambientes
+    CSRF_TRUSTED_ORIGINS = [
+        'https://gvd-system.com.br',
+        'https://www.gvd-system.com.br',
+        'http://gvd-system.com.br',
+        'http://www.gvd-system.com.br',
+        'http://localhost:8000',
+        'http://127.0.0.1:8000',
+        'http://0.0.0.0:8000'
+    ]
+    CSRF_USE_SESSIONS = True
