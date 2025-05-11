@@ -391,3 +391,31 @@ def account_delete(request, pk):
         'success': True,
         'redirect': reverse('account-list')
     })
+
+@login_required
+@require_POST
+def account_delete_form(request, pk):
+    """
+    Versão não-AJAX da função de exclusão de conta.
+    Usa formulário HTML tradicional para evitar problemas de CSRF.
+    """
+    account = get_object_or_404(Account, pk=pk)
+    account_type = account.get_type_display()
+
+    try:
+        # Verificar se a conta possui pagamentos ou recebimentos antes de excluir
+        if account.type == Account.AccountType.PAYABLE and account.payments.exists():
+            account.payments.all().delete()
+
+        if account.type == Account.AccountType.RECEIVABLE and account.receipts.exists():
+            account.receipts.all().delete()
+
+        # Excluir a conta
+        account.delete()
+        messages.success(request, _(f"{account_type} excluída com sucesso!"))
+    except Exception as e:
+        messages.error(request, _(f"Erro ao excluir {account_type.lower()}: {str(e)}"))
+        return redirect('account-detail', pk=pk)
+
+    # Redirecionar para a lista após excluir com sucesso
+    return redirect('account-list')

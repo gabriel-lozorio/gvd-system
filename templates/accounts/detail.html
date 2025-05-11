@@ -286,8 +286,8 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
 
-                <!-- Formulário oculto como fallback caso o JavaScript falhe -->
-                <form id="delete-form" method="post" action="{% url 'account-delete' account.id %}" style="display:none;">
+                <!-- Formulário para exclusão tradicional sem AJAX -->
+                <form id="delete-form" method="post" action="{% url 'account-delete-form' account.id %}" style="display:none;">
                     {% csrf_token %}
                 </form>
 
@@ -297,66 +297,14 @@
 
                 <script>
                     function deleteAccount() {
-                        const url = "{% url 'account-delete' account.id %}";
-
-                        // Verificar se fetch API está disponível
-                        if (!window.fetch) {
-                            // Fallback para envio de formulário padrão
-                            document.getElementById('delete-form').submit();
-                            return;
-                        }
-
-                        // Nova forma de obter o token CSRF do cookie
-                        function getCookie(name) {
-                            let cookieValue = null;
-                            if (document.cookie && document.cookie !== '') {
-                                const cookies = document.cookie.split(';');
-                                for (let i = 0; i < cookies.length; i++) {
-                                    const cookie = cookies[i].trim();
-                                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                                        break;
-                                    }
-                                }
-                            }
-                            return cookieValue;
-                        }
-
-                        // Também usar o token do formulário como fallback
-                        const formToken = document.querySelector('#delete-form [name="csrfmiddlewaretoken"]');
-                        const csrfToken = getCookie('csrftoken') || (formToken ? formToken.value : '');
-
-                        // Fechar o modal antes da requisição
+                        // Ocultar o modal
                         const modal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
                         if (modal) {
                             modal.hide();
                         }
 
-                        // Mostrar o token CSRF para depuração (remova em produção)
-                        console.log('CSRF Token:', csrfToken);
-
-                        fetch(url, {
-                            method: 'POST',
-                            headers: {
-                                'X-CSRFToken': csrfToken,
-                                'Content-Type': 'application/x-www-form-urlencoded', // Mudamos para form-urlencoded
-                                'HX-Request': 'true',
-                                'Origin': window.location.origin,
-                                'Referer': window.location.href
-                            },
-                            // Use um FormData vazio em vez de JSON para garantir compatibilidade com CSRF
-                            body: 'csrfmiddlewaretoken=' + csrfToken
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success && data.redirect) {
-                                window.location.href = data.redirect;
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            alert('Erro ao excluir a conta. Tente novamente.');
-                        });
+                        // Usar o formulário tradicional em vez de AJAX para evitar problemas de CSRF
+                        document.getElementById('delete-form').submit();
                     }
                 </script>
             </div>
