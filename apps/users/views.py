@@ -9,11 +9,17 @@ from .forms import UserRegisterForm, UserUpdateForm
 
 def register(request):
     """
-    View para registro de novos usuários
+    View para registro de novos usuários (temporariamente desativada)
+    """
+    # Funcionalidade de registro temporariamente desativada
+    messages.info(request, _("Criação de novas contas temporariamente indisponível. Entre em contato com o administrador."))
+    return redirect('login')
+
+    # O código abaixo está temporariamente desativado
     """
     if request.user.is_authenticated:
         return redirect('dashboard')
-    
+
     if request.method == 'POST':
         form = UserRegisterForm(request.POST)
         if form.is_valid():
@@ -22,8 +28,9 @@ def register(request):
             return redirect('login')
     else:
         form = UserRegisterForm()
-    
+
     return render(request, 'users/register.html', {'form': form})
+    """
 
 
 @login_required
