@@ -7,9 +7,10 @@ from django.db.models import Q
 from django.utils import timezone
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_POST
+from django.conf import settings
 from django.urls import reverse_lazy, reverse
 from django.utils.translation import gettext as _
-from django.views.decorators.csrf import csrf_exempt
+# Removemos a importação de csrf_exempt, pois queremos que as solicitações sejam protegidas
 
 # Aplicações locais
 from apps.accounts.models import Account
@@ -350,6 +351,18 @@ def account_delete(request, pk):
     """
     Deletar uma conta
     """
+    # Verificar CSRF Token para debugging
+    csrf_token = request.META.get('HTTP_X_CSRFTOKEN', 'Token não encontrado')
+    csrf_cookie = request.COOKIES.get('csrftoken', 'Cookie não encontrado')
+
+    # Verificar CSRF apenas em debug
+    if hasattr(settings, 'DEBUG') and settings.DEBUG:
+        print(f"[DEBUG CSRF] Token no cabeçalho: {csrf_token}")
+        print(f"[DEBUG CSRF] Token no cookie: {csrf_cookie}")
+        print(f"[DEBUG CSRF] Headers: {dict(request.headers)}")
+        print(f"[DEBUG CSRF] Método: {request.method}")
+        print(f"[DEBUG CSRF] Origem: {request.META.get('HTTP_ORIGIN', 'Desconhecida')}")
+
     account = get_object_or_404(Account, pk=pk)
     account_type = account.get_type_display()
 
